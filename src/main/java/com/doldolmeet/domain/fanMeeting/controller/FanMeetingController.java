@@ -41,6 +41,9 @@ public class FanMeetingController {
         return fanMeetingService.getMyLatestFanMeeting(request);
     }
 
-
-
+    // 팬미팅 들어갈 수 있는지 유무
+    @GetMapping("/fanMeetings/{fanMeetingId}/canEnter")
+    public ResponseEntity<Message> canEnterFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.canEnterFanMeeting(fanMeetingId, request);
+    }
 }

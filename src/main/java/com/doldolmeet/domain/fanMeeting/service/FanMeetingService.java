@@ -150,4 +150,31 @@ public class FanMeetingService {
 
         return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);
     }
+
+    public ResponseEntity<Message> canEnterFanMeeting(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Fan fan = userUtils.getFan(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+
+        Optional<FanToFanMeeting> fanToFanMeetingOpt = fanToFanMeetingRepository.findByFanAndFanMeeting(fan, fanMeeting);
+
+        if (!fanToFanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        FanToFanMeeting fanToFanMeeting = fanToFanMeetingOpt.get();
+
+        if (!fanToFanMeeting.getFanMeetingApplyStatus().equals(FanMeetingApplyStatus.APPROVED)) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(new Message("팬미팅 입장 가능", null), HttpStatus.OK);
+    }
 }
