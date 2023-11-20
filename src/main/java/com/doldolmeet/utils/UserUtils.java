@@ -35,12 +35,23 @@ public class UserUtils {
         }
     }
 
+
     public void checkIfAdmin(Claims claims) {
         String role = (String)claims.get("auth");
+        Optional<Admin> admin = adminRepository.findByUserCommonsUsername(claims.getSubject());
 
-        if (!role.equals(Role.ADMIN.getKey())) {
-            throw new CustomException(NOT_ADMIN);
+        if (!admin.isPresent()) {
+            throw new CustomException(USER_NOT_FOUND);
         }
     }
 
+    public Fan getFan(String username) {
+        Optional<Fan> fan = fanRepository.findByUserCommonsUsername(username);
+
+        if (!fan.isPresent()) {
+            throw new CustomException(NOT_USER);
+        }
+
+        return fan.get();
+    }
 }
