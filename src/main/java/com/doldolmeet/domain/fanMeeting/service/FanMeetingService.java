@@ -25,6 +25,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,6 +46,7 @@ public class FanMeetingService {
     private final UserUtils userUtils;
     private Claims claims;
 
+    @Transactional
     public ResponseEntity<Message> createFanMeeting(FanMeetingRequestDto requestDto, HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
         userUtils.checkIfAdmin(claims);
@@ -68,6 +70,7 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("팬미팅 생성 완료", null), HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity<Message> getFanMeetings(String option) {
         List<FanMeetingResponseDto> result = new ArrayList<>();
         List<FanMeeting> fanMeetings;
@@ -97,6 +100,7 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("팬미팅 조회 성공", result), HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity<Message> applyFanMeeting(Long fanMeetingId, HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
         Fan fan = userUtils.getFan(claims.getSubject());
@@ -128,6 +132,7 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("팬미팅 신청 성공", responseDto), HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity<Message> getMyLatestFanMeeting(HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
         Fan fan = userUtils.getFan(claims.getSubject());
@@ -151,6 +156,7 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity<Message> canEnterFanMeeting(Long fanMeetingId, HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
         Fan fan = userUtils.getFan(claims.getSubject());
