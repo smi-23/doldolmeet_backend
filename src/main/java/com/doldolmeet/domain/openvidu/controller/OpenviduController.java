@@ -68,4 +68,10 @@ public class OpenviduController {
         Connection connection = session.createConnection(properties);
         return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
     }
+
+    // AWS 로드밸런서 헬스체크용 API
+    @GetMapping("/health-check")
+    public String healthCheck() {
+        return "OK";
+    }
 }
