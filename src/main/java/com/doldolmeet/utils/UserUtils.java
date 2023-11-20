@@ -1,6 +1,5 @@
 package com.doldolmeet.utils;
 
-import com.doldolmeet.domain.commons.Role;
 import com.doldolmeet.domain.users.admin.entity.Admin;
 import com.doldolmeet.domain.users.admin.repository.AdminRepository;
 import com.doldolmeet.domain.users.fan.entity.Fan;
