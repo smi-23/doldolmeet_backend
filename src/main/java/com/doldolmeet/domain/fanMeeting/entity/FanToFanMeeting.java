@@ -3,11 +3,13 @@ package com.doldolmeet.domain.fanMeeting.entity;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Entity(name = "fan_to_fan_meeting")
+@Builder
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class FanToFanMeeting {
