@@ -20,10 +20,10 @@ public class AwsS3Controller {
      * Amazon S3에 파일 업로드
      * @return 성공 시 200 Success와 함께 업로드 된 파일의 파일명 리스트 반환
      */
-    @PostMapping("/file")
-    public ResponseEntity<List<String>> uploadFile(@RequestPart List<MultipartFile> multipartFile) {
+    @PostMapping("/file/{fanMeetingId}")
+    public ResponseEntity<List<String>> uploadFile(@PathVariable Long fanMeetingId, @RequestPart List<MultipartFile> multipartFile) {
         // Upload logic
-        List<String> uploadedFiles = awsS3Service.uploadFile(multipartFile);
+        List<String> uploadedFiles = awsS3Service.uploadFile(multipartFile, fanMeetingId);
 
         // Return success response
         return ResponseEntity.ok(uploadedFiles);

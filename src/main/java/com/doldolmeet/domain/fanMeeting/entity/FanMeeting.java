@@ -1,6 +1,7 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
 import com.doldolmeet.domain.team.entity.Team;
+import com.doldolmeet.domain.video.entity.Video;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,5 +51,8 @@ public class FanMeeting {
 
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<Video> videos = new ArrayList<>();
 
 }
