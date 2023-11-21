@@ -15,6 +15,7 @@ public class CorsConfig {
         config.addAllowedOrigin("https://www.doldolmeet.shop");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
+        config.setAllowCredentials(true);
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
