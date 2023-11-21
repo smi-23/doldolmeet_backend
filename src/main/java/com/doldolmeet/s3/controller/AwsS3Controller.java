@@ -2,6 +2,7 @@ package com.doldolmeet.s3.controller;
 
 import com.doldolmeet.s3.service.AwsS3Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,13 +20,25 @@ public class AwsS3Controller {
      * Amazon S3에 파일 업로드
      * @return 성공 시 200 Success와 함께 업로드 된 파일의 파일명 리스트 반환
      */
-    @PostMapping("/file")
-    public ResponseEntity<List<String>> uploadFile(@RequestPart List<MultipartFile> multipartFile) {
+    @PostMapping("/file/{fanMeetingId}")
+    public ResponseEntity<List<String>> uploadFile(@PathVariable Long fanMeetingId, @RequestPart List<MultipartFile> multipartFile) {
         // Upload logic
-        List<String> uploadedFiles = awsS3Service.uploadFile(multipartFile);
+        List<String> uploadedFiles = awsS3Service.uploadFile(multipartFile, fanMeetingId);
 
         // Return success response
         return ResponseEntity.ok(uploadedFiles);
+    }
+
+    /**
+     * Amazon S3에서 파일 다운로드
+     * @param fileName 다운로드할 파일의 파일명
+     * @return 성공 시 200 Success와 함께 파일 다운로드 응답 반환
+     * ex) http://localhost:8080/s3/file/download?fileName=c11111.mp4
+     */
+    @GetMapping("/file/download")
+    public ResponseEntity<Resource> downloadFile(@RequestParam String fileName) {
+        // Download logic
+        return awsS3Service.downloadFile(fileName);
     }
 
     /**

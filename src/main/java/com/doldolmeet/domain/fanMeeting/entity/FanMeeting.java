@@ -3,6 +3,7 @@ package com.doldolmeet.domain.fanMeeting.entity;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
+import com.doldolmeet.domain.video.entity.Video;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -61,4 +62,8 @@ public class FanMeeting {
     // 통화방 해시맵
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<TeleRoom> teleRooms = new ArrayList<>();
+  
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<Video> videos = new ArrayList<>();
+
 }
