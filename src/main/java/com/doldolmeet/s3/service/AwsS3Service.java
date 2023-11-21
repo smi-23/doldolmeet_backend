@@ -2,13 +2,15 @@ package com.doldolmeet.s3.service;
 
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,15 +53,40 @@ public class AwsS3Service {
         return fileNameList;
     }
 
+    /**
+     * AWS S3 버킷에서 파일을 다운로드하는 메서드.
+     *
+     * @param fileName 다운로드할 파일의 고유한 파일명
+     * @return ResponseEntity<Resource> 객체로 다운로드된 파일과 관련된 정보를 포함하는 응답
+     */
+    public ResponseEntity<Resource> downloadFile(String fileName) {
+        // AWS S3에서 파일 객체 가져오기
+        S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucket, fileName));
+        // S3ObjectInputStream을 이용하여 Resource 생성
+        S3ObjectInputStream s3ObjectInputStream = s3Object.getObjectContent();
+        Resource resource = new InputStreamResource(s3ObjectInputStream);
+        // HTTP 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentLength(s3Object.getObjectMetadata().getContentLength());
+        headers.setContentDispositionFormData("attachment", fileName);
+        // ResponseEntity를 사용하여 파일 다운로드 응답 생성
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+    }
+
     public void deleteFile(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
 
-    private String createFileName(String fileName) { // 먼저 파일 업로드 시, 파일명을 난수화하기 위해 random으로 돌립니다.
+    private String createFileName(String fileName) {
+        // 먼저 파일 업로드 시, 파일명을 난수화하기 위해 random으로 돌립니다.
         return UUID.randomUUID().toString().concat(getFileExtension(fileName));
     }
 
-    private String getFileExtension(String fileName) { // file 형식이 잘못된 경우를 확인하기 위해 만들어진 로직이며, 파일 타입과 상관없이 업로드할 수 있게 하기 위해 .의 존재 유무만 판단하였습니다.
+    private String getFileExtension(String fileName) {
+        // file 형식이 잘못된 경우를 확인하기 위해 만들어진 로직이며, 파일 타입과 상관없이 업로드할 수 있게 하기 위해 .의 존재 유무만 판단하였습니다.
         try {
             return fileName.substring(fileName.lastIndexOf("."));
         } catch (StringIndexOutOfBoundsException e) {

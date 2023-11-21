@@ -2,6 +2,7 @@ package com.doldolmeet.s3.controller;
 
 import com.doldolmeet.s3.service.AwsS3Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +27,18 @@ public class AwsS3Controller {
 
         // Return success response
         return ResponseEntity.ok(uploadedFiles);
+    }
+
+    /**
+     * Amazon S3에서 파일 다운로드
+     * @param fileName 다운로드할 파일의 파일명
+     * @return 성공 시 200 Success와 함께 파일 다운로드 응답 반환
+     * ex) http://localhost:8080/s3/file/download?fileName=c11111.mp4
+     */
+    @GetMapping("/file/download")
+    public ResponseEntity<Resource> downloadFile(@RequestParam String fileName) {
+        // Download logic
+        return awsS3Service.downloadFile(fileName);
     }
 
     /**
