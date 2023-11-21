@@ -61,8 +61,17 @@ public class OpenviduController {
         return openviduService.enterFanMeeting(fanMeetingId, request);
     }
 
+    // 아이돌 입장에서 다음에 들어올 팬 데이터 가져오는 API
+    @GetMapping("fanMeetings/{fanMeetingId}/nextFan")
+    public ResponseEntity<Message> getNextFan(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.getNextFan(fanMeetingId, request);
+    }
 
-
+    // 아이돌 입장에서 자기 방에 있는 팬 다음 방으로 가라는 API
+    @GetMapping("fanMeetings/{fanMeetingId}/nextWaitRoom")
+    public ResponseEntity<Message> getNextFanRoom(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.getNextWaitRoomId(fanMeetingId, request);
+    }
 
     // AWS 로드밸런서 헬스체크용 API
     @GetMapping("/health-check")

@@ -1,4 +1,4 @@
-package com.doldolmeet.domain.openvidu.dto;
+package com.doldolmeet.domain.openvidu.dto.response;
 
 import lombok.*;
 

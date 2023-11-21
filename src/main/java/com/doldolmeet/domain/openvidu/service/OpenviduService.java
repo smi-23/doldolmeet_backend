@@ -2,7 +2,11 @@ package com.doldolmeet.domain.openvidu.service;
 
 import com.doldolmeet.domain.commons.Role;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
-import com.doldolmeet.domain.openvidu.dto.EnterResponseDto;
+import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
+import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
+import com.doldolmeet.domain.openvidu.dto.response.EnterResponseDto;
+import com.doldolmeet.domain.openvidu.dto.response.NextFanResponseDto;
+import com.doldolmeet.domain.openvidu.dto.response.NextWaitRoomResponseDto;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.teleRoom.repository.TeleRoomRepository;
@@ -44,6 +48,7 @@ public class OpenviduService {
     private final WaitRoomRepository waitRoomRepository;
     private final TeleRoomRepository teleRoomRepository;
     private final WaitRoomFanRepository waitRoomFanRepository;
+    private final FanToFanMeetingRepository fanToFanMeetingRepository;
 
     private Claims claims;
     @Value("${OPENVIDU_URL}")
@@ -104,7 +109,7 @@ public class OpenviduService {
                 waitRoom = fanMeeting.get().getWaitRooms().get(idx.intValue());
 
                 // 다시 연결
-                waitRoom.getWaitRoomFans().add(waitRoomFan.get()); // waitRoom에 팬 추가.
+//                waitRoom.getWaitRoomFans().add(waitRoomFan.get()); // waitRoom에 팬 추가.
                 Session session = openvidu.getActiveSession(waitRoom.getRoomId());
 
                 if (session == null) {
@@ -120,14 +125,20 @@ public class OpenviduService {
 
             // 존재 안하면,
             else {
+                Optional<FanToFanMeeting> fanToFanMeeting = fanToFanMeetingRepository.findByFanAndFanMeeting(fan, fanMeeting.get());
+
+                if (!fanToFanMeeting.isPresent()) {
+                    throw new CustomException(FAN_TO_FANMEETING_NOT_FOUND);
+                }
                 // 새로 만들기
                 WaitRoomFan newWaitRoomFan = WaitRoomFan.builder()
                         .nextTeleRoomIdx(0L)
                         .nextWaitRoomIdx(0L)
+                        .orderNumber(fanToFanMeeting.get().getOrderNumber())
                         .fan(userUtils.getFan(claims.getSubject()))
                         .build();
 
-                waitRoom = fanMeeting.get().getWaitRooms().get(0); // TODO: 0 대신 nextWaitRoomIdx 넣기
+                waitRoom = fanMeeting.get().getWaitRooms().get(0);
                 newWaitRoomFan.setWaitRoom(waitRoom);
                 waitRoomSession = openvidu.getActiveSession(fanMeeting.get().getWaitRooms().get(0).getRoomId());
                 waitRoom.getWaitRoomFans().add(newWaitRoomFan);
@@ -164,27 +175,29 @@ public class OpenviduService {
                 return new ResponseEntity<>(new Message("아이돌이 자기방 재입장 성공", responseDto), HttpStatus.OK);
             }
 
-            // 아직 첫번째 대기방 세션 생성 안되어있으면 생성하기
-            if (!fanMeeting.get().getIsFirstWaitRoomCreated()) {
-                WaitRoom waitRoom = fanMeeting.get().getWaitRooms().get(0);
-                Map<String, Object> param = new HashMap<>();
-                param.put("customSessionId", waitRoom.getRoomId());
-                SessionProperties properties = SessionProperties.fromJson(param).build();
+//            // 아직 첫번째 대기방 세션 생성 안되어있으면 생성하기
+//            if (!fanMeeting.get().getIsFirstWaitRoomCreated()) {
+//                WaitRoom waitRoom = fanMeeting.get().getWaitRooms().get(0);
+//                Map<String, Object> param = new HashMap<>();
+//                param.put("customSessionId", waitRoom.getRoomId());
+//                SessionProperties properties = SessionProperties.fromJson(param).build();
+//
+//                try {
+//                    Session session = openvidu.createSession(properties);
+//                    fanMeeting.get().setIsFirstWaitRoomCreated(true);
+//                    responseDto.setMainWaitRoomId(session.getSessionId());
+//
+//                    waitRoomRepository.save(waitRoom);
+//                } catch (OpenViduHttpException e) {
+//                    if (e.getStatus() == 409) {
+//                        return new ResponseEntity<>(new Message("이미 존재하는 방입니다.", null), HttpStatus.CONFLICT);
+//                    } else {
+//                        return new ResponseEntity<>(new Message("openvidu 오류", null), HttpStatus.INTERNAL_SERVER_ERROR);
+//                    }
+//                }
+//            }
 
-                try {
-                    Session session = openvidu.createSession(properties);
-                    fanMeeting.get().setIsFirstWaitRoomCreated(true);
-                    responseDto.setMainWaitRoomId(session.getSessionId());
-
-                    waitRoomRepository.save(waitRoom);
-                } catch (OpenViduHttpException e) {
-                    if (e.getStatus() == 409) {
-                        return new ResponseEntity<>(new Message("이미 존재하는 방입니다.", null), HttpStatus.CONFLICT);
-                    } else {
-                        return new ResponseEntity<>(new Message("openvidu 오류", null), HttpStatus.INTERNAL_SERVER_ERROR);
-                    }
-                }
-            }
+            // teleRoom, waitRoom 생성
             Map<String, Object> param1 = new HashMap<>(); // videoRoom용
             Map<String, Object> param2 = new HashMap<>(); // waitList용
 
@@ -238,5 +251,85 @@ public class OpenviduService {
         else {
             throw new CustomException(USER_NOT_FOUND);
         }
+    }
+
+    // 현재 자신과 통화중인 팬을 다음 대기열로 옮기는 기능
+    // 자신의 대기
+    // 열에서 최우선순위 팬을 들여오는 기능
+
+    @Transactional
+    public ResponseEntity<Message> getNextFan(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Idol idol = userUtils.getIdol(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+        Optional<WaitRoom> waitRoomOpt = waitRoomRepository.findByRoomId(idol.getWaitRoomId());
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        if (!waitRoomOpt.isPresent()) {
+            throw new CustomException(WAITROOM_NOT_FOUND);
+        }
+
+        WaitRoom waitRoom = waitRoomOpt.get();
+        Optional<WaitRoomFan> waitRoomFan = waitRoomFanRepository.findFirstByWaitRoomOrderByOrderAsc(waitRoom);
+
+        if (!waitRoomFan.isPresent()) {
+            throw new CustomException(WAITROOMFAN_NOT_FOUND);
+        }
+
+        Fan fan = waitRoomFan.get().getFan();
+
+        NextFanResponseDto responseDto = NextFanResponseDto.builder()
+                .username(fan.getUserCommons().getUsername())
+                .build();
+
+        return new ResponseEntity<>(new Message("다음에 참여할 팬 조회 성공", responseDto), HttpStatus.OK);
+    }
+
+//    // openvidu connection 해제
+//    public ResponseEntity<Message> disconnect(String connectionId) throws OpenViduJavaClientException, OpenViduHttpException {
+//        Connection connection = openvidu.getActiveConnection(connectionId);
+//        if (connection == null) {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//        connection.getSession().close();
+//        return new ResponseEntity<>(new Message("Connection successfully closed", null), HttpStatus.OK);
+//    }
+
+    public ResponseEntity<Message> getNextWaitRoomId(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Idol idol = userUtils.getIdol(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+        Optional<WaitRoom> waitRoomOpt = waitRoomRepository.findByRoomId(idol.getWaitRoomId());
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        if (!waitRoomOpt.isPresent()) {
+            throw new CustomException(WAITROOM_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+        WaitRoom waitRoom = waitRoomOpt.get();
+
+        int waitRoomIdx = fanMeeting.getWaitRooms().indexOf(waitRoom);
+
+        // 마지막 대기열이었을 경우,
+        if (waitRoomIdx == fanMeeting.getWaitRooms().size() - 1) {
+            return new ResponseEntity<>(new Message("마지막 대기열입니다.", "END"), HttpStatus.OK);
+        }
+
+        // 그 외엔 다음 대기열세션ID 반환
+        WaitRoom nextWaitRoom = fanMeeting.getWaitRooms().get(waitRoomIdx + 1);
+
+        NextWaitRoomResponseDto responseDto = NextWaitRoomResponseDto.builder()
+                .roomId(nextWaitRoom.getRoomId())
+                .build();
+        return new ResponseEntity<>(new Message("다음 대기열ID 반환 성공", responseDto), HttpStatus.OK);
     }
 }
