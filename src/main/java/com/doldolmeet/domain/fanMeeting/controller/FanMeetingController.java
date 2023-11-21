@@ -6,6 +6,7 @@ import com.doldolmeet.utils.Message;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,35 @@ public class FanMeetingController {
         return fanMeetingService.getMyLatestFanMeeting(request);
     }
 
+    // 나의 팬미팅 순서 조회
+    @GetMapping("/fanMeetings/{fanMeetingId}/myOrder")
+    public Integer getMyOrder(HttpServletRequest request, @PathVariable Long fanMeetingId) {
+        System.out.println("fanMeetingId = " + fanMeetingId);
+        return fanMeetingService.getMyOrder(request, fanMeetingId);
+    }
+
+
+
+    // idol을 기다리는 fan을 받아서 db에 저장하는 api
+    @PostMapping("/idolName/{idolName}/fanName/{fanName}")
+    public ResponseEntity<Message> saveConnection(@PathVariable String idolName, @PathVariable String fanName) {
+        // IdolConnection에 저장
+        fanMeetingService.saveConnection(idolName, fanName);
+        return new ResponseEntity<>(new Message("저장 완료",'?'), HttpStatus.OK);
+    }
+
+    // idol을 기다리는 fan중 orderNumber가 가장 작은(우선순위가 가장 높은) fan을 받아서 return하는 api
+    @GetMapping("/idolName/{idolName}/nextFan")
+    public String getFan(@PathVariable String idolName) {
+        return fanMeetingService.getNextFan(idolName);
+    }
+
+    // idol을 기다리는 fan중 orderNumber가 가장 작은(우선순위가 가장 높은) fan을 삭제하는 api
+    @PostMapping("/idolName/{idolName}/fanEntered")
+    public ResponseEntity<Message> deleteEnteredFan(@PathVariable String idolName) {
+        fanMeetingService.deleteEnteredFan(idolName);
+        return new ResponseEntity<>(new Message("삭제 완료",'?'), HttpStatus.OK);
+    }
 
 
 }

@@ -22,6 +22,10 @@ public class Fan {
     @Column(nullable = false)
     private Long id;
 
+
+    @Column(nullable = true)
+    private Integer orderNumber;
+
     @Embedded
     private UserCommons userCommons;
 

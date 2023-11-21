@@ -17,12 +17,14 @@ import com.doldolmeet.security.jwt.JwtUtil;
 import com.doldolmeet.security.password.PwEncoder;
 import com.doldolmeet.utils.Message;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.lang.model.type.NullType;
 import java.util.Optional;
 import static com.doldolmeet.exception.ErrorCode.*;
 
@@ -54,6 +56,7 @@ public class GuestService {
         if (requestDto.getRole().equals(Role.FAN)) {
             Fan fan = Fan.builder()
                     .userCommons(userCommons)
+                    .orderNumber(0)
                     .build();
 
             fanRepository.save(fan);

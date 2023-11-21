@@ -17,6 +17,8 @@ public class SignupRequestDto {
     @Pattern(regexp="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[$@$!%*?&])[A-Za-z\\d$@$!%*?&]{8,15}", message = "입력 양식과 맞지 않습니다.")
     private String password;
 
+    private Integer orderNumber;
+
     private Role role = Role.FAN;
 
     private String stageName;

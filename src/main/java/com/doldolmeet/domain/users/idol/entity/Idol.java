@@ -9,6 +9,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.print.DocFlavor;
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @Builder
@@ -25,6 +29,12 @@ public class Idol {
 
     @Column(nullable = false)
     private String stageName;
+
+    @Column(nullable = false, unique = true)
+    private String meetingRoomSession;
+
+    @Column(nullable = false, unique = true)
+    private String waitingRoomSession;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")

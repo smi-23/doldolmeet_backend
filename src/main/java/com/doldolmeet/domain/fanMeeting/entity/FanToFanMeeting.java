@@ -33,8 +33,13 @@ public class FanToFanMeeting {
     @Enumerated(value = EnumType.STRING)
     private FanMeetingApplyStatus fanMeetingApplyStatus;
 
-    public void setUserAndFanMeeting(Fan fan, FanMeeting fanMeeting) {
+    // 팬이 팬미팅에 참여하는 순서
+    @Column(nullable = false)
+    private Integer orderNumber;
+
+    public void setUserAndFanMeeting(Fan fan, FanMeeting fanMeeting, Integer orderNumber) {
         this.fan = fan;
         this.fanMeeting = fanMeeting;
+        this.orderNumber = orderNumber;
     }
 }

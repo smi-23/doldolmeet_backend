@@ -51,4 +51,5 @@ public class FanMeeting {
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();
 
+
 }

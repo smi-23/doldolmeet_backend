@@ -42,7 +42,7 @@ public enum ErrorCode {
     FANMEETING_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팬미팅을  찾을 수 없습니다."),
     //인증
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
-
+    FAN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팬을 찾을 수 없습니다."),
     //serverError
     INTERNAL_SERER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
 
