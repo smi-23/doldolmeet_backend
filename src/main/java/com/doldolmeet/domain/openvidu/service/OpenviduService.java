@@ -2,6 +2,7 @@ package com.doldolmeet.domain.openvidu.service;
 
 import com.doldolmeet.domain.commons.Role;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
+import com.doldolmeet.domain.openvidu.dto.EnterResponseDto;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.teleRoom.repository.TeleRoomRepository;
@@ -79,6 +80,7 @@ public class OpenviduService {
     public ResponseEntity<Message> enterFanMeeting(Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         claims = jwtUtil.getClaims(request);
         String role = (String)claims.get("auth");
+        EnterResponseDto responseDto = new EnterResponseDto();
 
         Optional<FanMeeting> fanMeeting = fanMeetingRepository.findById(fanMeetingId);
 
@@ -112,8 +114,8 @@ public class OpenviduService {
                 ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build();
                 Connection connection = session.createConnection(properties);
                 waitRoomFan.get().setConnectionId(connection.getConnectionId());
-
-                return new ResponseEntity<>(new Message("팬 재접속 성공", connection.getToken()), HttpStatus.OK);
+                responseDto.setToken(connection.getToken());
+                return new ResponseEntity<>(new Message("팬 재접속 성공", responseDto), HttpStatus.OK);
             }
 
             // 존재 안하면,
@@ -136,9 +138,9 @@ public class OpenviduService {
                 if (waitRoomSession == null) {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
-
+                responseDto.setToken(connection.getToken());
                 waitRoomFanRepository.save(newWaitRoomFan);
-                return new ResponseEntity<>(new Message("팬미팅 입장 성공", connection.getToken()), HttpStatus.OK);
+                return new ResponseEntity<>(new Message("팬미팅 입장 성공", responseDto), HttpStatus.OK);
             }
         }
 
@@ -146,6 +148,21 @@ public class OpenviduService {
         else if (role.equals(Role.IDOL.getKey())) {
             Map<String, String> result = new HashMap<>();
             Idol idol = userUtils.getIdol(claims.getSubject());
+
+            // 아이돌이 가지고 있는 TeleRoomId에 해당하는 방이 존재하면 거기로 가기
+            if (openvidu.getActiveSession(idol.getTeleRoomId()) != null) {
+                Session session = openvidu.getActiveSession(idol.getTeleRoomId());
+
+                if (session == null) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+
+                ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build(); // params에 뭐?
+                Connection connection = session.createConnection(properties);
+
+                responseDto.setToken(connection.getToken());
+                return new ResponseEntity<>(new Message("아이돌이 자기방 재입장 성공", responseDto), HttpStatus.OK);
+            }
 
             // 아직 첫번째 대기방 세션 생성 안되어있으면 생성하기
             if (!fanMeeting.get().getIsFirstWaitRoomCreated()) {
@@ -157,7 +174,8 @@ public class OpenviduService {
                 try {
                     Session session = openvidu.createSession(properties);
                     fanMeeting.get().setIsFirstWaitRoomCreated(true);
-                    result.put("mainWaitRoomId", session.getSessionId());
+                    responseDto.setMainWaitRoomId(session.getSessionId());
+
                     waitRoomRepository.save(waitRoom);
                 } catch (OpenViduHttpException e) {
                     if (e.getStatus() == 409) {
@@ -180,8 +198,8 @@ public class OpenviduService {
                 Session teleSession = openvidu.createSession(properties1);
                 Session waitSession = openvidu.createSession(properties2);
 
-                result.put("teleRoomId", teleSession.getSessionId());
-                result.put("waitRoomId", waitSession.getSessionId());
+                responseDto.setTeleRoomId(teleSession.getSessionId());
+                responseDto.setWaitRoomId(waitSession.getSessionId());
 
                 WaitRoom waitRoom = new WaitRoom();
                 waitRoom.setRoomId(idol.getWaitRoomId());
@@ -194,9 +212,6 @@ public class OpenviduService {
                 fanMeeting.get().getWaitRooms().add(waitRoom);
                 fanMeeting.get().getTeleRooms().add(teleRoom);
 
-                waitRoomRepository.save(waitRoom);
-                teleRoomRepository.save(teleRoom);
-
                 Session session = openvidu.getActiveSession(teleSession.getSessionId());
 
                 if (session == null) {
@@ -205,9 +220,12 @@ public class OpenviduService {
 
                 ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build(); // params에 뭐?
                 Connection connection = session.createConnection(properties);
-                result.put("token", connection.getToken());
+                responseDto.setToken(connection.getToken());
 
-                return new ResponseEntity<>(new Message("아이돌 방생성 및 입장 성공", result), HttpStatus.OK);
+                waitRoomRepository.save(waitRoom);
+                teleRoomRepository.save(teleRoom);
+
+                return new ResponseEntity<>(new Message("아이돌 방생성 및 입장 성공", responseDto), HttpStatus.OK);
             } catch (OpenViduHttpException e) {
                 if (e.getStatus() == 409) {
                     return new ResponseEntity<>(new Message("이미 존재하는 방입니다.", null), HttpStatus.CONFLICT);
