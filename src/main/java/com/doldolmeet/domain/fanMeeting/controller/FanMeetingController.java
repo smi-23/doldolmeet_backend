@@ -36,9 +36,9 @@ public class FanMeetingController {
     }
 
     // 내가 신청한 팬미팅 중 예정된 가장 첫번째 팬미팅
-    @GetMapping("/fanMeetings/latest")
-    public ResponseEntity<Message> getMyLatestFanMeeting(HttpServletRequest request) {
-        return fanMeetingService.getMyLatestFanMeeting(request);
+    @GetMapping("/fanMeetings/today")
+    public ResponseEntity<Message> getMyTodayFanMeeting(HttpServletRequest request) {
+        return fanMeetingService.getMyTodayFanMeeting(request);
     }
 
     // 팬미팅 들어갈 수 있는지 유무
