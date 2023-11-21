@@ -13,31 +13,34 @@ import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.team.repository.TeamRepository;
 import com.doldolmeet.domain.users.admin.entity.Admin;
 import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.domain.users.idol.entity.Idol;
+import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
 import com.doldolmeet.exception.CustomException;
 import com.doldolmeet.exception.ErrorCode;
 import com.doldolmeet.security.jwt.JwtUtil;
 import com.doldolmeet.utils.Message;
 import com.doldolmeet.utils.UserUtils;
 import io.jsonwebtoken.Claims;
+import io.openvidu.java.client.Session;
+import io.openvidu.java.client.SessionProperties;
+import jakarta.persistence.Id;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.*;
+import java.util.*;
 
 import static com.doldolmeet.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FanMeetingService {
     private final FanMeetingRepository fanMeetingRepository;
     private final TeamRepository teamRepository;
@@ -62,12 +65,23 @@ public class FanMeetingService {
                 .endTime(requestDto.getEndTime())
                 .capacity(requestDto.getCapacity())
                 .fanMeetingName(requestDto.getFanMeetingName())
+                .isFirstWaitRoomCreated(false)
                 .team(team.get())
-                .roomId(UUID.randomUUID().toString())
+                .waitRooms(new ArrayList<>())
+                .fanToFanMeetings(new ArrayList<>())
+                .teleRooms(new ArrayList<>())
                 .build();
 
+        WaitRoom waitRoom = new WaitRoom();
+        waitRoom.createWaitRoomId();
+        waitRoom.setFanMeeting(fanMeeting);
+        fanMeeting.getWaitRooms().add(waitRoom);
+
         fanMeetingRepository.save(fanMeeting);
-        return new ResponseEntity<>(new Message("팬미팅 생성 완료", null), HttpStatus.OK);
+        Map<String, Long> result = new HashMap<>();
+        result.put("id", fanMeeting.getId());
+
+        return new ResponseEntity<>(new Message("팬미팅 생성 완료", result), HttpStatus.OK);
     }
 
     @Transactional
@@ -133,12 +147,19 @@ public class FanMeetingService {
     }
 
     @Transactional
-    public ResponseEntity<Message> getMyLatestFanMeeting(HttpServletRequest request) {
+    public ResponseEntity<Message> getMyTodayFanMeeting(HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
         Fan fan = userUtils.getFan(claims.getSubject());
 
         LocalDateTime currentTime = LocalDateTime.now();
-        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findEarliestFanMeetingByFan(fan, currentTime);
+        LocalDateTime midNightTime = currentTime.with(LocalTime.MIN);
+
+        log.info(currentTime.toString());
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findTodayLatestFanMeetingByFan(fan, currentTime, midNightTime);
+
+        if (fanMeetingOpt.isPresent()) {
+            return new ResponseEntity<>(new Message("오늘꺼", new FanMeetingResponseDto(fanMeetingOpt.get())), HttpStatus.OK);
+        }
 
         if (!fanMeetingOpt.isPresent()) {
             throw new CustomException(FANMEETING_NOT_FOUND);

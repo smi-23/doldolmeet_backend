@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Getter
 @Entity
 @Builder
@@ -29,6 +31,17 @@ public class Idol {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
+
+    private String teleRoomId;
+    private String waitRoomId;
+
+    public void createTeleRoomId() {
+        this.teleRoomId = UUID.randomUUID().toString();
+    }
+
+    public void createWaitRoomId() {
+        this.waitRoomId = UUID.randomUUID().toString();
+    }
 
     public void setTeam(Team team) {
         this.team = team;

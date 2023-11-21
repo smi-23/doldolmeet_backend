@@ -3,8 +3,12 @@ package com.doldolmeet.domain.openvidu.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.doldolmeet.domain.openvidu.service.OpenviduService;
+import com.doldolmeet.utils.Message;
 import jakarta.annotation.PostConstruct;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,20 +24,9 @@ import io.openvidu.java.client.SessionProperties;
 
 @CrossOrigin(origins = "*")
 @RestController
+@RequiredArgsConstructor
 public class OpenviduController {
-
-    @Value("${OPENVIDU_URL}")
-    private String OPENVIDU_URL;
-
-    @Value("${OPENVIDU_SECRET}")
-    private String OPENVIDU_SECRET;
-
-    private OpenVidu openvidu;
-
-    @PostConstruct
-    public void init() {
-        this.openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
-    }
+    private final OpenviduService openviduService;
 
     /**
      * @param params The Session properties
@@ -44,9 +37,7 @@ public class OpenviduController {
     @PostMapping("/api/sessions")
     public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        SessionProperties properties = SessionProperties.fromJson(params).build();
-        Session session = openvidu.createSession(properties);
-        return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+        return openviduService.initializeSession(params);
     }
 
     /**
@@ -60,14 +51,18 @@ public class OpenviduController {
     public ResponseEntity<String> createConnection(@PathVariable("sessionId") String sessionId,
                                                    @RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        Session session = openvidu.getActiveSession(sessionId);
-        if (session == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
-        Connection connection = session.createConnection(properties);
-        return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
+        return openviduService.createConnection(sessionId, params);
     }
+
+
+    // 화상통화방 들어가는 API(팬, 아이돌 로직 분기처리됨)
+    @GetMapping("fanMeetings/{fanMeetingId}/session")
+    public ResponseEntity<Message> enterFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.enterFanMeeting(fanMeetingId, request);
+    }
+
+
+
 
     // AWS 로드밸런서 헬스체크용 API
     @GetMapping("/health-check")

@@ -70,7 +70,8 @@ public class GuestService {
             if (!team.isPresent()) {
                 throw new CustomException(TEAM_NOT_FOUND);
             }
-
+            idol.createTeleRoomId();
+            idol.createWaitRoomId();
             idol.setTeam(team.get());
             idolRepository.save(idol);
         }
