@@ -284,6 +284,8 @@ public class OpenviduService {
 
         NextFanResponseDto responseDto = NextFanResponseDto.builder()
                 .username(fan.getUserCommons().getUsername())
+                .connectionId(waitRoomFan.get().getConnectionId())
+                .waitRoomId(waitRoom.getRoomId())
                 .build();
 
         return new ResponseEntity<>(new Message("다음에 참여할 팬 조회 성공", responseDto), HttpStatus.OK);

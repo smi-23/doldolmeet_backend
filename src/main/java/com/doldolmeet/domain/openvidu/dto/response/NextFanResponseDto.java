@@ -11,4 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NextFanResponseDto {
     private String username;
+    private String waitRoomId;
+    private String connectionId;
 }
