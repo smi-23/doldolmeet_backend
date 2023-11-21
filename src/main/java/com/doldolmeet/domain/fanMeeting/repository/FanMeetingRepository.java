@@ -17,10 +17,6 @@ public interface FanMeetingRepository extends JpaRepository<FanMeeting, Long> {
     List<FanMeeting> findFanMeetingsByEndTimeBefore(LocalDateTime now);
 
     // 가장 이른 팬미팅 조회
-    @Query("SELECT ftfm.fanMeeting FROM FanToFanMeeting ftfm " +
-            "WHERE ftfm.fan = :fan " +
-            "AND ftfm.fanMeeting.startTime >= :midNightTime " +
-            "AND ftfm.fanMeeting.endTime > :currentTime " +
-            "ORDER BY ftfm.fanMeeting.endTime DESC LIMIT 1")
-    Optional<FanMeeting> findTodayLatestFanMeetingByFan(@Param("fan") Fan fan, @Param("midNightTime") LocalDateTime midNightTime, @Param("currentTime") LocalDateTime currentTime);
+    @Query("SELECT ftfm.fanMeeting FROM FanToFanMeeting ftfm WHERE ftfm.fan = :fan AND ftfm.fanMeeting.startTime >= :midNightTime AND ftfm.fanMeeting.endTime > :currentTime ORDER BY ftfm.fanMeeting.endTime ASC LIMIT 1")
+    Optional<FanMeeting> findFanMeetingsByFan(@Param("fan") Fan fan, @Param("midNightTime") LocalDateTime midNightTime, @Param("currentTime") LocalDateTime currentTime);
 }

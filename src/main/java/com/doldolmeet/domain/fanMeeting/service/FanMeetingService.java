@@ -70,12 +70,8 @@ public class FanMeetingService {
                 .waitRooms(new ArrayList<>())
                 .fanToFanMeetings(new ArrayList<>())
                 .teleRooms(new ArrayList<>())
+                .nextOrder(1L)
                 .build();
-
-        WaitRoom waitRoom = new WaitRoom();
-        waitRoom.createWaitRoomId();
-        waitRoom.setFanMeeting(fanMeeting);
-        fanMeeting.getWaitRooms().add(waitRoom);
 
         fanMeetingRepository.save(fanMeeting);
         Map<String, Long> result = new HashMap<>();
@@ -119,20 +115,24 @@ public class FanMeetingService {
         claims = jwtUtil.getClaims(request);
         Fan fan = userUtils.getFan(claims.getSubject());
 
-        Optional<FanMeeting> fanMeeting = fanMeetingRepository.findById(fanMeetingId);
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
 
-        if (!fanMeeting.isPresent()) {
+        if (!fanMeetingOpt.isPresent()) {
             throw new CustomException(FANMEETING_NOT_FOUND);
         }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
 
         FanToFanMeeting fanToFanMeeting = FanToFanMeeting.builder()
                 .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
                 .fan(fan)
-                .fanMeeting(fanMeeting.get())
+                .fanMeeting(fanMeeting)
+                .orderNumber(fanMeeting.getNextOrder())
                 .build();
 
+        fanMeeting.setNextOrder(fanMeeting.getNextOrder() + 1L);
         fan.getFanToFanMeetings().add(fanToFanMeeting);
-        fanMeeting.get().getFanToFanMeetings().add(fanToFanMeeting);
+        fanMeeting.getFanToFanMeetings().add(fanToFanMeeting);
 
         fanToFanMeetingRepository.save(fanToFanMeeting);
 
@@ -140,6 +140,7 @@ public class FanMeetingService {
                 .id(fanToFanMeeting.getId())
                 .fanMeetingId(fanMeetingId)
                 .fanId(fan.getId())
+                .orderNumber(fanToFanMeeting.getOrderNumber())
                 .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
                 .build();
 
@@ -154,12 +155,10 @@ public class FanMeetingService {
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime midNightTime = currentTime.with(LocalTime.MIN);
 
-        log.info(currentTime.toString());
-        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findTodayLatestFanMeetingByFan(fan, currentTime, midNightTime);
-
-        if (fanMeetingOpt.isPresent()) {
-            return new ResponseEntity<>(new Message("오늘꺼", new FanMeetingResponseDto(fanMeetingOpt.get())), HttpStatus.OK);
-        }
+        log.info("현재시간: " + currentTime);
+        log.info("자정시간: " + midNightTime);
+//        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findTodayLatestFanMeetingByFan(fan, currentTime, midNightTime);
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findFanMeetingsByFan(fan, midNightTime, currentTime);
 
         if (!fanMeetingOpt.isPresent()) {
             throw new CustomException(FANMEETING_NOT_FOUND);
@@ -172,6 +171,7 @@ public class FanMeetingService {
                 .imgUrl(fanMeeting.getFanMeetingImgUrl())
                 .title(fanMeeting.getFanMeetingName())
                 .startTime(fanMeeting.getStartTime())
+                .endTime(fanMeeting.getEndTime())
                 .build();
 
         return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);

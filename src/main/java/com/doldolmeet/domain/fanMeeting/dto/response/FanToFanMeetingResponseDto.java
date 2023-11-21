@@ -17,4 +17,5 @@ public class FanToFanMeetingResponseDto {
     private Long fanId;
     private Long fanMeetingId;
     private FanMeetingApplyStatus fanMeetingApplyStatus;
+    private Long orderNumber;
 }

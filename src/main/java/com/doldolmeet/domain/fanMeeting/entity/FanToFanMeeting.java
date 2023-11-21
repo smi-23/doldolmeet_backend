@@ -33,6 +33,9 @@ public class FanToFanMeeting {
     @Enumerated(value = EnumType.STRING)
     private FanMeetingApplyStatus fanMeetingApplyStatus;
 
+    @Column(nullable = false)
+    private Long orderNumber;
+
     public void setUserAndFanMeeting(Fan fan, FanMeeting fanMeeting) {
         this.fan = fan;
         this.fanMeeting = fanMeeting;
