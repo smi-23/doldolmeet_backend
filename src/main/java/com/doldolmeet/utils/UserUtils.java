@@ -53,4 +53,15 @@ public class UserUtils {
 
         return fan.get();
     }
+
+    public Idol getIdol(String username) {
+        Optional<Idol> idol = idolRepository.findByUserCommonsUsername(username);
+
+        if (!idol.isPresent()) {
+            throw new CustomException(NOT_USER);
+        }
+
+        return idol.get();
+
+    }
 }

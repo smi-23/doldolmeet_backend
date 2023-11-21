@@ -1,17 +1,18 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
 import com.doldolmeet.domain.team.entity.Team;
+import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
+import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
+@Setter
 @Getter
 @Builder
 @NoArgsConstructor
@@ -42,13 +43,22 @@ public class FanMeeting {
     @Column
     private String fanMeetingImgUrl;
 
+    // 팬미팅 인원수
     @Column(nullable = false)
     private Integer capacity;
 
-    @Column(nullable = false)
-    private String roomId;
+    @Column
+    private Boolean isFirstWaitRoomCreated;
 
+    // 팬미팅 신청서들
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();
 
+    // 대기방 해시맵(메인 대기룸 + 아이돌별 대기룸)
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<WaitRoom> waitRooms;
+
+    // 통화방 해시맵
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<TeleRoom> teleRooms;
 }

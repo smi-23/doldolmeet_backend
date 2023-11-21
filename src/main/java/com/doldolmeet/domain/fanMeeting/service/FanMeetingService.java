@@ -13,12 +13,17 @@ import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.team.repository.TeamRepository;
 import com.doldolmeet.domain.users.admin.entity.Admin;
 import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.domain.users.idol.entity.Idol;
+import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
 import com.doldolmeet.exception.CustomException;
 import com.doldolmeet.exception.ErrorCode;
 import com.doldolmeet.security.jwt.JwtUtil;
 import com.doldolmeet.utils.Message;
 import com.doldolmeet.utils.UserUtils;
 import io.jsonwebtoken.Claims;
+import io.openvidu.java.client.Session;
+import io.openvidu.java.client.SessionProperties;
+import jakarta.persistence.Id;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -29,10 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.doldolmeet.exception.ErrorCode.*;
 
@@ -62,9 +64,14 @@ public class FanMeetingService {
                 .endTime(requestDto.getEndTime())
                 .capacity(requestDto.getCapacity())
                 .fanMeetingName(requestDto.getFanMeetingName())
+                .isFirstWaitRoomCreated(false)
                 .team(team.get())
-                .roomId(UUID.randomUUID().toString())
                 .build();
+
+        WaitRoom waitRoom = new WaitRoom();
+        waitRoom.createWaitRoomId();
+        waitRoom.setFanMeeting(fanMeeting);
+        fanMeeting.getWaitRooms().add(waitRoom);
 
         fanMeetingRepository.save(fanMeeting);
         return new ResponseEntity<>(new Message("팬미팅 생성 완료", null), HttpStatus.OK);
