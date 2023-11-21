@@ -56,9 +56,9 @@ public class FanMeeting {
 
     // 대기방 해시맵(메인 대기룸 + 아이돌별 대기룸)
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
-    private List<WaitRoom> waitRooms;
+    private List<WaitRoom> waitRooms = new ArrayList<>();
 
     // 통화방 해시맵
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
-    private List<TeleRoom> teleRooms;
+    private List<TeleRoom> teleRooms = new ArrayList<>();
 }

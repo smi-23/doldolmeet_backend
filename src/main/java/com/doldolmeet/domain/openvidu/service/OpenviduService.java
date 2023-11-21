@@ -148,7 +148,7 @@ public class OpenviduService {
             Idol idol = userUtils.getIdol(claims.getSubject());
 
             // 아직 첫번째 대기방 세션 생성 안되어있으면 생성하기
-            if (fanMeeting.get().getIsFirstWaitRoomCreated()) {
+            if (!fanMeeting.get().getIsFirstWaitRoomCreated()) {
                 WaitRoom waitRoom = fanMeeting.get().getWaitRooms().get(0);
                 Map<String, Object> param = new HashMap<>();
                 param.put("customSessionId", waitRoom.getRoomId());
@@ -185,9 +185,11 @@ public class OpenviduService {
 
                 WaitRoom waitRoom = new WaitRoom();
                 waitRoom.setRoomId(idol.getWaitRoomId());
+                waitRoom.setFanMeeting(fanMeeting.get());
 
                 TeleRoom teleRoom = new TeleRoom();
                 teleRoom.setRoomId(idol.getTeleRoomId());
+                teleRoom.setFanMeeting(fanMeeting.get());
 
                 fanMeeting.get().getWaitRooms().add(waitRoom);
                 fanMeeting.get().getTeleRooms().add(teleRoom);
