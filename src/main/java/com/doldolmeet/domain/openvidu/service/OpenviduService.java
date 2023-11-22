@@ -6,6 +6,7 @@ import com.doldolmeet.domain.fanMeeting.dto.response.NextWaitRoomResponseDto;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
+import com.doldolmeet.domain.openvidu.dto.request.ConnUpdateRequestDto;
 import com.doldolmeet.domain.openvidu.dto.response.EnterResponseDto;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
@@ -418,5 +419,44 @@ public class OpenviduService {
         teleRoomFanRepository.save(teleRoomFan);
 
         return new ResponseEntity<>(new Message("화상방에 추가 성공", null), HttpStatus.OK);
+    }
+
+    @Transactional
+    public ResponseEntity<Message> updateConnection(ConnUpdateRequestDto requestDto, HttpServletRequest request) {
+        Fan fan = userUtils.getFan(requestDto.getUsername());
+
+        if (requestDto.getType().equals("TELE")) {
+            TeleRoom teleRoom = userUtils.getTeleRoom(requestDto.getRoomId());
+            Optional<TeleRoomFan> teleRoomFanOpt = teleRoomFanRepository.findByFanIdAndTeleRoomId(fan.getId(), teleRoom.getId());
+
+            if (!teleRoomFanOpt.isPresent()) {
+                throw new CustomException(TELE_ROOMFAN_NOT_FOUND);
+            }
+
+            TeleRoomFan teleRoomFan = teleRoomFanOpt.get();
+            teleRoomFan.setConnectionId(requestDto.getConnectionId());
+            teleRoomFan.setConnectionToken(requestDto.getConnectionToken());
+
+            teleRoomFanRepository.save(teleRoomFan);
+            return new ResponseEntity<>(new Message("화상방 팬 커넥션 업데이트 성공", null), HttpStatus.OK);
+        }
+        else if (requestDto.getType().equals("WAIT")) {
+            WaitRoom waitRoom = userUtils.getWaitRoom(requestDto.getRoomId());
+            Optional<WaitRoomFan> waitRoomFanOpt = waitRoomFanRepository.findByFanIdAndWaitRoomId(fan.getId(), waitRoom.getId());
+
+            if (!waitRoomFanOpt.isPresent()) {
+                throw new CustomException(WAITROOMFAN_NOT_FOUND);
+            }
+
+            WaitRoomFan waitRoomFan = waitRoomFanOpt.get();
+            waitRoomFan.setConnectionId(requestDto.getConnectionId());
+            waitRoomFan.setConnectionToken(requestDto.getConnectionToken());
+
+            waitRoomFanRepository.save(waitRoomFan);
+            return new ResponseEntity<>(new Message("대기방 팬 커넥션 업데이트 성공", null), HttpStatus.OK);
+        }
+        else {
+            throw new CustomException(UNKNOWN_TYPE);
+        }
     }
 }

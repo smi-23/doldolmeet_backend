@@ -3,6 +3,7 @@ package com.doldolmeet.domain.openvidu.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.doldolmeet.domain.openvidu.dto.request.ConnUpdateRequestDto;
 import com.doldolmeet.domain.openvidu.service.OpenviduService;
 import com.doldolmeet.utils.Message;
 import jakarta.annotation.PostConstruct;
@@ -22,7 +23,7 @@ import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.Session;
 import io.openvidu.java.client.SessionProperties;
 
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 @RestController
 @RequiredArgsConstructor
 public class OpenviduController {
@@ -87,5 +88,11 @@ public class OpenviduController {
     @PostMapping("username/{username}/teleRoomId/{teleRoomId}/fanMeetingId/{fanMeetingId}/saveFanTeleing")
     public ResponseEntity<Message> saveFanTeleing(@PathVariable String teleRoomId, @PathVariable Long fanMeetingId, @PathVariable String username) throws OpenViduJavaClientException, OpenViduHttpException {
         return openviduService.saveFanTeleing(teleRoomId, fanMeetingId, username);
+    }
+
+    // TeleRoomFan과 WaitRoomFan을 찾아서 커넥션Id와 커넥션토큰을 저장해야 한다.
+    @PostMapping("updateConnection")
+    public ResponseEntity<Message> updateConnection(@RequestBody ConnUpdateRequestDto requestDto, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.updateConnection(requestDto, request);
     }
 }

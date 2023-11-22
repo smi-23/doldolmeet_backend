@@ -25,9 +25,6 @@ public class TeleRoomFan {
     private Long orderNumber;
 
     @Column
-    private String currRoomId;
-
-    @Column
     private String connectionToken;
 
     @OneToOne(fetch = FetchType.LAZY)
