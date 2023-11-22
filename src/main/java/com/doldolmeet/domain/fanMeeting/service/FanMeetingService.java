@@ -6,10 +6,13 @@ import com.doldolmeet.domain.fanMeeting.dto.response.*;
 import com.doldolmeet.domain.fanMeeting.entity.*;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
+import com.doldolmeet.domain.fanMeeting.repository.IdolToFanMeetingRepository;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.team.repository.TeamRepository;
 import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.domain.users.fan.repository.FanRepository;
 import com.doldolmeet.domain.users.idol.entity.Idol;
+import com.doldolmeet.domain.users.idol.repository.IdolRepository;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoomFan;
 import com.doldolmeet.domain.waitRoom.repository.WaitRoomFanRepository;
@@ -40,6 +43,9 @@ public class FanMeetingService {
     private final FanMeetingRepository fanMeetingRepository;
     private final TeamRepository teamRepository;
     private final FanToFanMeetingRepository fanToFanMeetingRepository;
+    private final IdolToFanMeetingRepository idolToFanMeetingRepository;
+    private final FanRepository fanRepository;
+    private final IdolRepository idolRepository;
     private final WaitRoomFanRepository waitRoomFanRepository;
     private final WaitRoomRepository waitRoomRepository;
     private final JwtUtil jwtUtil;
@@ -145,22 +151,67 @@ public class FanMeetingService {
     }
 
     @Transactional
+    public ResponseEntity<Message> idolApplyFanMeeting(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Idol idol = userUtils.getIdol(claims.getSubject());
+
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+
+        IdolToFanMeeting idolToFanMeeting = IdolToFanMeeting.builder()
+                .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
+                .idol(idol)
+                .fanMeeting(fanMeeting)
+                .build();
+
+        fanMeeting.setNextOrder(fanMeeting.getNextOrder() + 1L);
+        idol.getIdolToFanMeetings().add(idolToFanMeeting);
+        fanMeeting.getIdolToFanMeetings().add(idolToFanMeeting);
+
+        idolToFanMeetingRepository.save(idolToFanMeeting);
+
+        IdolToFanMeetingResponseDto responseDto = IdolToFanMeetingResponseDto.builder()
+                .id(idolToFanMeeting.getId())
+                .fanMeetingId(fanMeetingId)
+                .idolId(idol.getId())
+                .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
+                .build();
+
+        return new ResponseEntity<>(new Message("팬미팅(아이돌) 신청 성공", responseDto), HttpStatus.OK);
+    }
+
+    @Transactional
     public ResponseEntity<Message> getMyTodayFanMeeting(HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
-        Fan fan = userUtils.getFan(claims.getSubject());
+        Optional<Fan> fan = fanRepository.findByUserCommonsUsername(claims.getSubject());
+        Optional<Idol> idol = idolRepository.findByUserCommonsUsername(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt;
 
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime midNightTime = currentTime.with(LocalTime.MIN);
 
         log.info("현재시간: " + currentTime);
         log.info("자정시간: " + midNightTime);
-//        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findTodayLatestFanMeetingByFan(fan, currentTime, midNightTime);
-        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findFanMeetingsByFan(fan, midNightTime, currentTime);
 
+        if (fan.isPresent()) {
+            fanMeetingOpt = fanMeetingRepository.findFanMeetingsByFan(fan.get(), midNightTime, currentTime);
+        }
+        else if (idol.isPresent()) {
+            fanMeetingOpt = fanMeetingRepository.findFanMeetingsByIdol(idol.get(), midNightTime, currentTime);
+        }
+        else {
+            throw new CustomException(USER_NOT_FOUND);
+        }
         if (!fanMeetingOpt.isPresent()) {
             throw new CustomException(FANMEETING_NOT_FOUND);
         }
-
         FanMeeting fanMeeting = fanMeetingOpt.get();
 
         FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()

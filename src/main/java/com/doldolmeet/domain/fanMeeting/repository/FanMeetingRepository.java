@@ -2,6 +2,7 @@ package com.doldolmeet.domain.fanMeeting.repository;
 
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.domain.users.idol.entity.Idol;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +17,11 @@ public interface FanMeetingRepository extends JpaRepository<FanMeeting, Long> {
     List<FanMeeting> findFanMeetingsByEndTimeAfter(LocalDateTime now);
     List<FanMeeting> findFanMeetingsByEndTimeBefore(LocalDateTime now);
 
-    // 가장 이른 팬미팅 조회
+    // 가장 이른 팬미팅 조회(팬이 신청)
     @Query("SELECT ftfm.fanMeeting FROM FanToFanMeeting ftfm WHERE ftfm.fan = :fan AND ftfm.fanMeeting.startTime >= :midNightTime AND ftfm.fanMeeting.endTime > :currentTime ORDER BY ftfm.fanMeeting.endTime ASC LIMIT 1")
     Optional<FanMeeting> findFanMeetingsByFan(@Param("fan") Fan fan, @Param("midNightTime") LocalDateTime midNightTime, @Param("currentTime") LocalDateTime currentTime);
+
+    // 가장 이른 팬미팅 조회(아이돌이 신청)
+    @Query("SELECT itfm.fanMeeting FROM IdolToFanMeeting itfm WHERE itfm.idol = :idol AND itfm.fanMeeting.startTime >= :midNightTime AND itfm.fanMeeting.endTime > :currentTime ORDER BY itfm.fanMeeting.endTime ASC LIMIT 1")
+    Optional<FanMeeting> findFanMeetingsByIdol(@Param("idol") Idol idol, @Param("midNightTime") LocalDateTime midNightTime, @Param("currentTime") LocalDateTime currentTime);
 }

@@ -55,6 +55,9 @@ public class FanMeeting {
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();
 
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<IdolToFanMeeting> idolToFanMeetings = new ArrayList<>();
+
     // 대기방 해시맵(메인 대기룸 + 아이돌별 대기룸)
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<WaitRoom> waitRooms = new ArrayList<>();

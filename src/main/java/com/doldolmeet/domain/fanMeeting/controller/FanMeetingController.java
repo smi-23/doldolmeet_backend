@@ -37,6 +37,12 @@ public class FanMeetingController {
         return fanMeetingService.applyFanMeeting(fanMeetingId, request);
     }
 
+    // 아이돌이 해당 팬미팅 신청 API 필요 없을것 같음 추후에
+    @PostMapping("/fanMeetings/idol/{fanMeetingId}")
+    public ResponseEntity<Message> IdolApplyFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.idolApplyFanMeeting(fanMeetingId, request);
+    }
+
     // 내가 신청한 팬미팅 중 예정된 가장 첫번째 팬미팅
     @GetMapping("/fanMeetings/today")
     public ResponseEntity<Message> getMyTodayFanMeeting(HttpServletRequest request) {
