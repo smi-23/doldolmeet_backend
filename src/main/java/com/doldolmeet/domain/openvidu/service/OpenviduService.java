@@ -179,6 +179,8 @@ public class OpenviduService {
                 Connection connection = session.createConnection(properties);
 
                 responseDto.setToken(connection.getToken());
+                responseDto.setTeleRoomId(idol.getTeleRoomId());
+                responseDto.setWaitRoomId(idol.getWaitRoomId());
                 return new ResponseEntity<>(new Message("아이돌이 자기방 재입장 성공", responseDto), HttpStatus.OK);
             }
 
