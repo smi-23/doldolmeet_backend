@@ -76,6 +76,7 @@ public class OpenviduService {
         if (session == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
         ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
         Connection connection = session.createConnection(properties);
         return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
@@ -117,10 +118,7 @@ public class OpenviduService {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
 
-                Map<String, Object> param = new HashMap<>();
-                param.put("customSessionId", waitRoom.getRoomId());
-
-                ConnectionProperties properties = ConnectionProperties.fromJson(param).build();
+                ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build();
                 Connection connection = session.createConnection(properties);
                 waitRoomFan.setConnectionId(connection.getConnectionId());
                 waitRoomFan.setCurrRoomId(waitRoom.getRoomId());
