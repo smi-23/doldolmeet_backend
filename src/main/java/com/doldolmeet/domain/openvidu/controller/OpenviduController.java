@@ -65,4 +65,10 @@ public class OpenviduController {
     public String healthCheck() {
         return "OK";
     }
+
+    //들어간 팬을 대기 방에서 삭제하는 API
+    @PostMapping("/idolName/{idolName}/deleteFanParticipated")
+    public ResponseEntity<Message> deleteFanParticipated(@PathVariable String idolName, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.deleteWaitRoom(idolName, request);
+    }
 }

@@ -1,6 +1,8 @@
 package com.doldolmeet.domain.openvidu.service;
 
 import com.doldolmeet.domain.commons.Role;
+import com.doldolmeet.domain.fanMeeting.dto.response.NextFanResponseDto;
+import com.doldolmeet.domain.fanMeeting.dto.response.NextWaitRoomResponseDto;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
@@ -184,6 +186,28 @@ public class OpenviduService {
                 return new ResponseEntity<>(new Message("아이돌이 자기방 재입장 성공", responseDto), HttpStatus.OK);
             }
 
+//            // 아직 첫번째 대기방 세션 생성 안되어있으면 생성하기
+//            if (!fanMeeting.get().getIsFirstWaitRoomCreated()) {
+//                WaitRoom waitRoom = fanMeeting.get().getWaitRooms().get(0);
+//                Map<String, Object> param = new HashMap<>();
+//                param.put("customSessionId", waitRoom.getRoomId());
+//                SessionProperties properties = SessionProperties.fromJson(param).build();
+//
+//                try {
+//                    Session session = openvidu.createSession(properties);
+//                    fanMeeting.get().setIsFirstWaitRoomCreated(true);
+//                    responseDto.setMainWaitRoomId(session.getSessionId());
+//
+//                    waitRoomRepository.save(waitRoom);
+//                } catch (OpenViduHttpException e) {
+//                    if (e.getStatus() == 409) {
+//                        return new ResponseEntity<>(new Message("이미 존재하는 방입니다.", null), HttpStatus.CONFLICT);
+//                    } else {
+//                        return new ResponseEntity<>(new Message("openvidu 오류", null), HttpStatus.INTERNAL_SERVER_ERROR);
+//                    }
+//                }
+//            }
+
             // teleRoom, waitRoom 생성
             Map<String, Object> param1 = new HashMap<>(); // videoRoom용
             Map<String, Object> param2 = new HashMap<>(); // waitList용
@@ -244,6 +268,39 @@ public class OpenviduService {
     // 자신의 대기
     // 열에서 최우선순위 팬을 들여오는 기능
 
+    @Transactional
+    public ResponseEntity<Message> getNextFan(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Idol idol = userUtils.getIdol(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+        Optional<WaitRoom> waitRoomOpt = waitRoomRepository.findByRoomId(idol.getWaitRoomId());
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        if (!waitRoomOpt.isPresent()) {
+            throw new CustomException(WAITROOM_NOT_FOUND);
+        }
+
+        WaitRoom waitRoom = waitRoomOpt.get();
+        Optional<WaitRoomFan> waitRoomFan = waitRoomFanRepository.findFirstByWaitRoomOrderByOrderAsc(waitRoom);
+
+        if (!waitRoomFan.isPresent()) {
+            throw new CustomException(WAITROOMFAN_NOT_FOUND);
+        }
+
+        Fan fan = waitRoomFan.get().getFan();
+
+        NextFanResponseDto responseDto = NextFanResponseDto.builder()
+                .username(fan.getUserCommons().getUsername())
+                .connectionId(waitRoomFan.get().getConnectionId())
+                .waitRoomId(waitRoom.getRoomId())
+                .build();
+
+        return new ResponseEntity<>(new Message("다음에 참여할 팬 조회 성공", responseDto), HttpStatus.OK);
+    }
 
 //    // openvidu connection 해제
 //    public ResponseEntity<Message> disconnect(String connectionId) throws OpenViduJavaClientException, OpenViduHttpException {
@@ -254,4 +311,64 @@ public class OpenviduService {
 //        connection.getSession().close();
 //        return new ResponseEntity<>(new Message("Connection successfully closed", null), HttpStatus.OK);
 //    }
+
+    public ResponseEntity<Message> getNextWaitRoomId(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Idol idol = userUtils.getIdol(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+        Optional<WaitRoom> waitRoomOpt = waitRoomRepository.findByRoomId(idol.getWaitRoomId());
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        if (!waitRoomOpt.isPresent()) {
+            throw new CustomException(WAITROOM_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+        WaitRoom waitRoom = waitRoomOpt.get();
+
+        int waitRoomIdx = fanMeeting.getWaitRooms().indexOf(waitRoom);
+
+        // 마지막 대기열이었을 경우,
+        if (waitRoomIdx == fanMeeting.getWaitRooms().size() - 1) {
+            return new ResponseEntity<>(new Message("마지막 대기열입니다.", "END"), HttpStatus.OK);
+        }
+
+        // 그 외엔 다음 대기열세션ID 반환
+        WaitRoom nextWaitRoom = fanMeeting.getWaitRooms().get(waitRoomIdx + 1);
+
+        NextWaitRoomResponseDto responseDto = NextWaitRoomResponseDto.builder()
+                .roomId(nextWaitRoom.getRoomId())
+                .build();
+        return new ResponseEntity<>(new Message("다음 대기열ID 반환 성공", responseDto), HttpStatus.OK);
+    }
+
+    public ResponseEntity<Message> deleteWaitRoom(String IdolName, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+
+        Idol idol = userUtils.getIdol(IdolName);
+
+        Optional<WaitRoom> waitRoomOpt = waitRoomRepository.findByRoomId(idol.getWaitRoomId());
+
+        if (!waitRoomOpt.isPresent()) {
+            throw new CustomException(WAITROOM_NOT_FOUND);
+        }
+
+        WaitRoom waitRoom = waitRoomOpt.get();
+        Optional<WaitRoomFan> waitRoomFanOpt = waitRoomFanRepository.findFirstByWaitRoomOrderByOrderAsc(waitRoom);
+
+        if (!waitRoomFanOpt.isPresent()) {
+            throw new CustomException(WAITROOMFAN_NOT_FOUND);
+        }
+
+        WaitRoomFan waitRoomFan = waitRoomFanOpt.get();
+
+        waitRoomFanRepository.delete(waitRoomFan);
+
+        return new ResponseEntity<>(new Message("대기열에서 삭제 성공", null), HttpStatus.OK);
+    }
+
 }
