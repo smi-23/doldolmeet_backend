@@ -115,7 +115,10 @@ public class OpenviduService {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
 
-                ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build();
+                Map<String, Object> param = new HashMap<>();
+                param.put("customSessionId", waitRoom.getRoomId());
+
+                ConnectionProperties properties = ConnectionProperties.fromJson(param).build();
                 Connection connection = session.createConnection(properties);
                 waitRoomFan.setConnectionId(connection.getConnectionId());
                 waitRoomFan.setCurrRoomId(waitRoom.getRoomId());
