@@ -7,8 +7,11 @@ import com.doldolmeet.domain.fanMeeting.entity.*;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.repository.IdolToFanMeetingRepository;
+import com.doldolmeet.domain.openvidu.dto.response.EnterResponseDto;
+import com.doldolmeet.domain.openvidu.service.TeleRoomFanRepository;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.team.repository.TeamRepository;
+import com.doldolmeet.domain.teleRoom.entity.TeleRoomFan;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import com.doldolmeet.domain.users.fan.repository.FanRepository;
 import com.doldolmeet.domain.users.idol.entity.Idol;
@@ -18,7 +21,7 @@ import com.doldolmeet.domain.waitRoom.entity.WaitRoomFan;
 import com.doldolmeet.domain.waitRoom.repository.WaitRoomFanRepository;
 import com.doldolmeet.domain.waitRoom.repository.WaitRoomRepository;
 import com.doldolmeet.exception.CustomException;
-import com.doldolmeet.exception.ErrorCode;
+import com.doldolmeet.exception.ErrorCode.*;
 import com.doldolmeet.security.jwt.JwtUtil;
 import com.doldolmeet.utils.Message;
 import com.doldolmeet.utils.UserUtils;
@@ -48,6 +51,7 @@ public class FanMeetingService {
     private final IdolRepository idolRepository;
     private final WaitRoomFanRepository waitRoomFanRepository;
     private final WaitRoomRepository waitRoomRepository;
+    private final TeleRoomFanRepository teleRoomFanRepository;
     private final JwtUtil jwtUtil;
     private final UserUtils userUtils;
     private Claims claims;
@@ -60,7 +64,7 @@ public class FanMeetingService {
         Optional<Team> team = teamRepository.findByTeamName(requestDto.getTeamName());
 
         if (!team.isPresent()) {
-            throw new CustomException(ErrorCode.TEAM_NOT_FOUND);
+            throw new CustomException(TEAM_NOT_FOUND);
         }
 
         FanMeeting fanMeeting = FanMeeting.builder()
@@ -329,18 +333,20 @@ public class FanMeetingService {
 
         int waitRoomIdx = fanMeeting.getWaitRooms().indexOf(waitRoom);
 
+        NextWaitRoomResponseDto responseDto = new NextWaitRoomResponseDto();
+
         // 마지막 대기열이었을 경우,
         if (waitRoomIdx == fanMeeting.getWaitRooms().size() - 1) {
-            return new ResponseEntity<>(new Message("마지막 대기열입니다.", "END"), HttpStatus.OK);
+            responseDto.setRoomId("END");
+            return new ResponseEntity<>(new Message("마지막 대기열입니다.", responseDto), HttpStatus.OK);
         }
 
         // 그 외엔 다음 대기열세션ID 반환
         WaitRoom nextWaitRoom = fanMeeting.getWaitRooms().get(waitRoomIdx + 1);
 
-        NextWaitRoomResponseDto responseDto = NextWaitRoomResponseDto.builder()
-                .roomId(nextWaitRoom.getRoomId())
-                .roomType(RoomType.FAN_MEETING_ROOM)
-                .build();
+        responseDto.setRoomId(nextWaitRoom.getRoomId());
+        responseDto.setRoomType(RoomType.WAITING_ROOM);
+
         return new ResponseEntity<>(new Message("다음 대기열ID 반환 성공", responseDto), HttpStatus.OK);
     }
 
@@ -356,17 +362,28 @@ public class FanMeetingService {
         }
 
         Optional<WaitRoomFan> waitRoomFan = waitRoomFanRepository.findByFanIdAndWaitRoomId(fan.getId(), fanMeetingId);
+        Optional<TeleRoomFan> teleRoomFan = teleRoomFanRepository.findByFanIdAndTeleRoomId(fan.getId(), fanMeetingId);
 
-        if (!waitRoomFan.isPresent()) {
-            throw new CustomException(WAITROOMFAN_NOT_FOUND);
+        if (waitRoomFan.isPresent()) {
+            String roomId = waitRoomFan.get().getWaitRoom().getRoomId();
+            CurrRoomInfoResponseDto responseDto = CurrRoomInfoResponseDto.builder()
+                    .roomId(roomId)
+                    .build();
+
+            return new ResponseEntity<>(new Message("현재 위치한 방(대기방)의 세션ID 반환 성공", responseDto), HttpStatus.OK);
         }
 
-        String roomId = waitRoomFan.get().getCurrRoomId();
+        else if (teleRoomFan.isPresent()) {
+            String roomId = teleRoomFan.get().getTeleRoom().getRoomId();
+            CurrRoomInfoResponseDto responseDto = CurrRoomInfoResponseDto.builder()
+                    .roomId(roomId)
+                    .build();
 
-        CurrRoomInfoResponseDto responseDto = CurrRoomInfoResponseDto.builder()
-                .roomId(roomId)
-                .build();
-        return new ResponseEntity<>(new Message("현재 위치한 방의 세션ID 반환 성공", responseDto), HttpStatus.OK);
+            return new ResponseEntity<>(new Message("현재 위치한 방(화상방)의 세션ID 반환 성공", responseDto), HttpStatus.OK);
+        }
 
+        else {
+            throw new CustomException(FAN_NOT_IN_ROOM);
+        }
     }
 }

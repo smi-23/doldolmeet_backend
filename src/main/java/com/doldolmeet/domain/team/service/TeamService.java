@@ -34,6 +34,11 @@ public class TeamService {
 
     @Transactional
     public ResponseEntity<Message> createTeam(CreateTeamRequestDto requestDto, HttpServletRequest request) {
+        teamRepository.findByTeamName(requestDto.getTeamName())
+                .ifPresent(team -> {
+                    throw new CustomException(TEAM_ALREADY_EXIST);
+                });
+
         claims = jwtUtil.getClaims(request);
         userUtils.checkIfAdmin(claims);
         userUtils.checkIfUserExist(claims);

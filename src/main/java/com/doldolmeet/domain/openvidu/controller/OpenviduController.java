@@ -68,8 +68,13 @@ public class OpenviduController {
 
     //들어간 팬을 대기 방에서 삭제하는 API
     @PostMapping("/idolName/{idolName}/deleteFanParticipated")
-    public ResponseEntity<Message> deleteFanParticipated(@PathVariable String idolName, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
-        return openviduService.deleteWaitRoom(idolName, request);
+    public ResponseEntity<Message> deleteFanParticipatedWait(@PathVariable String idolName, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.deleteWaitRoomFan(idolName, request);
+    }
+
+    @PostMapping("/idolName/{idolName}/deleteFanParticipated/Tele")
+    public ResponseEntity<Message> deleteFanParticipatedTele(@PathVariable String idolName, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.deleteTeleRoomFan(idolName, request);
     }
 
     //대기방에 들어온 팬을 저장하는 API
@@ -78,5 +83,9 @@ public class OpenviduController {
         return openviduService.saveFanWaiting(waitRoomId, fanMeetingId, username);
     }
 
-
+    //화상방에 들어온 팬을 저장하는 API
+    @PostMapping("username/{username}/teleRoomId/{teleRoomId}/fanMeetingId/{fanMeetingId}/saveFanTeleing")
+    public ResponseEntity<Message> saveFanTeleing(@PathVariable String teleRoomId, @PathVariable Long fanMeetingId, @PathVariable String username) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.saveFanTeleing(teleRoomId, fanMeetingId, username);
+    }
 }

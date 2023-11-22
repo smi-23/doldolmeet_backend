@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface WaitRoomFanRepository extends JpaRepository<WaitRoomFan, Long> {
     @Query("select w from WaitRoomFan w join fetch w.waitRoom where w.fan.id = :fanId and w.waitRoom.fanMeeting.id = :fanMeetingId")
-    Optional<WaitRoomFan> findByFanIdAndWaitRoomId(Long fanId, Long fanMeetingId);
+    Optional<WaitRoomFan> findByFanIdAndWaitRoomId(@Param("fanId") Long fanId, @Param("fanMeetingId") Long fanMeetingId);
 
     // 해당 대기방에 있는 WaitRoomFan 중 가장 order가 낮은 사람을 가져온ek.
     @Query("SELECT w FROM WaitRoomFan w WHERE w.waitRoom = :waitRoom ORDER BY w.orderNumber ASC LIMIT 1")

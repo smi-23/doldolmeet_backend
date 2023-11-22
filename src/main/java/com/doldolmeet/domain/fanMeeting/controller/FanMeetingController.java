@@ -69,7 +69,7 @@ public class FanMeetingController {
 
     // 아이돌 입장에서 자기 방에 있는 팬 다음 방으로 가라는 API
     @GetMapping("fanMeetings/{fanMeetingId}/nextWaitRoom")
-    public ResponseEntity<Message> getNextFanRoom(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+    public ResponseEntity<Message> getNextWaitRoomId(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.getNextWaitRoomId(fanMeetingId, request);
     }
 

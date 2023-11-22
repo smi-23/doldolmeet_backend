@@ -1,16 +1,17 @@
-package com.doldolmeet.domain.waitRoom.entity;
+package com.doldolmeet.domain.teleRoom.entity;
 
 import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
-@Setter
 @Entity
+@Setter
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WaitRoomFan {
+public class TeleRoomFan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -22,14 +23,16 @@ public class WaitRoomFan {
 
     @Column
     private Long orderNumber;
-    // orderNumber를 TeleRoomFan에 추가하기
+
+    @Column
+    private String currRoomId;
 
     @Column
     private String connectionToken;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wait_room_id")
-    private WaitRoom waitRoom;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tele_room_id")
+    private TeleRoom teleRoom;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_id")
