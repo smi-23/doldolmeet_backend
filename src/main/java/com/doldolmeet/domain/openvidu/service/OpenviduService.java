@@ -167,6 +167,10 @@ public class OpenviduService {
             Map<String, String> result = new HashMap<>();
             Idol idol = userUtils.getIdol(claims.getSubject());
 
+            if (fanMeeting.get().getTeam().getIdols().contains(idol)) {
+                throw new CustomException(IDOL_NOT_IN_FANMEETING);
+            }
+
             // 아이돌이 가지고 있는 TeleRoomId에 해당하는 방이 존재하면 거기로 가기
             if (openvidu.getActiveSession(idol.getTeleRoomId()) != null) {
                 Session session = openvidu.getActiveSession(idol.getTeleRoomId());

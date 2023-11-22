@@ -48,7 +48,8 @@ public enum ErrorCode {
     INTERNAL_SERER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR"),
     WAITROOM_FAN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 대기방에 팬이 없습니다."),
     FAN_TO_FANMEETING_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팬미팅에 팬이 없습니다."),
-    WAITROOMFAN_NOT_FOUND(HttpStatus.NOT_FOUND, "팬미팅 입장 안했습니다.");
+    WAITROOMFAN_NOT_FOUND(HttpStatus.NOT_FOUND, "팬미팅 입장 안했습니다."),
+    IDOL_NOT_IN_FANMEETING(HttpStatus.NOT_FOUND, "해당 아이돌은 팬미팅에 참여할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String data;
