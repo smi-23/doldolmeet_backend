@@ -49,9 +49,6 @@ public class FanMeeting {
     private Integer capacity;
 
     @Column
-    private Boolean isFirstWaitRoomCreated;
-
-    @Column
     private Long nextOrder;
 
     // 팬미팅 신청서들

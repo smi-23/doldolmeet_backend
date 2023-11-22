@@ -62,7 +62,7 @@ public class FanMeetingService {
                 .endTime(requestDto.getEndTime())
                 .capacity(requestDto.getCapacity())
                 .fanMeetingName(requestDto.getFanMeetingName())
-                .isFirstWaitRoomCreated(false)
+                .fanMeetingImgUrl(requestDto.getFanMeetingImgUrl())
                 .team(team.get())
                 .waitRooms(new ArrayList<>())
                 .fanToFanMeetings(new ArrayList<>())
