@@ -1,14 +1,12 @@
 package com.doldolmeet.domain.fanMeeting.service;
 
-import com.doldolmeet.domain.commons.Role;
 import com.doldolmeet.domain.fanMeeting.dto.request.FanMeetingRequestDto;
 import com.doldolmeet.domain.fanMeeting.dto.response.*;
 import com.doldolmeet.domain.fanMeeting.entity.*;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.repository.IdolToFanMeetingRepository;
-import com.doldolmeet.domain.openvidu.dto.response.EnterResponseDto;
-import com.doldolmeet.domain.openvidu.service.TeleRoomFanRepository;
+import com.doldolmeet.domain.teleRoom.repository.TeleRoomFanRepository;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.team.repository.TeamRepository;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoomFan;
@@ -21,7 +19,6 @@ import com.doldolmeet.domain.waitRoom.entity.WaitRoomFan;
 import com.doldolmeet.domain.waitRoom.repository.WaitRoomFanRepository;
 import com.doldolmeet.domain.waitRoom.repository.WaitRoomRepository;
 import com.doldolmeet.exception.CustomException;
-import com.doldolmeet.exception.ErrorCode.*;
 import com.doldolmeet.security.jwt.JwtUtil;
 import com.doldolmeet.utils.Message;
 import com.doldolmeet.utils.UserUtils;

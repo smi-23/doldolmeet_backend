@@ -1,8 +1,6 @@
 package com.doldolmeet.domain.openvidu.service;
 
 import com.doldolmeet.domain.commons.Role;
-import com.doldolmeet.domain.fanMeeting.dto.response.NextFanResponseDto;
-import com.doldolmeet.domain.fanMeeting.dto.response.NextWaitRoomResponseDto;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
@@ -11,6 +9,7 @@ import com.doldolmeet.domain.openvidu.dto.response.EnterResponseDto;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoomFan;
+import com.doldolmeet.domain.teleRoom.repository.TeleRoomFanRepository;
 import com.doldolmeet.domain.teleRoom.repository.TeleRoomRepository;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import com.doldolmeet.domain.users.fan.repository.FanRepository;
@@ -122,7 +121,7 @@ public class OpenviduService {
                 Session session = openvidu.getActiveSession(waitRoom.getRoomId());
 
                 if (session == null) {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                    throw new CustomException(WAITROOM_NOT_FOUND);
                 }
 
                 ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build();
@@ -147,7 +146,7 @@ public class OpenviduService {
                 Session session = openvidu.getActiveSession(waitRoom.getRoomId());
 
                 if (session == null) {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                    throw new CustomException(WAITROOM_NOT_FOUND);
                 }
 
                 ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build();
@@ -185,7 +184,7 @@ public class OpenviduService {
                     Session session = openvidu.getActiveSession(waitRoom.getRoomId());
 
                     if (session == null) {
-                        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                        throw new CustomException(WAITROOM_NOT_FOUND);
                     }
 
                     ConnectionProperties properties = ConnectionProperties.fromJson(new HashMap<>()).build();

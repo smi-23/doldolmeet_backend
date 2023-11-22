@@ -1,4 +1,4 @@
-package com.doldolmeet.domain.openvidu.service;
+package com.doldolmeet.domain.teleRoom.repository;
 
 import com.doldolmeet.domain.teleRoom.entity.TeleRoomFan;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoomFan;
