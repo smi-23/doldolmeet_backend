@@ -31,6 +31,12 @@ public class WaitRoomFan {
     @Column
     private Long orderNumber;
 
+    @Column
+    private String currRoomId;
+
+    @Column
+    private String connectionToken;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wait_room_id")
     private WaitRoom waitRoom;

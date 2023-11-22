@@ -3,6 +3,8 @@ package com.doldolmeet.domain.fanMeeting.controller;
 import com.doldolmeet.domain.fanMeeting.dto.request.FanMeetingRequestDto;
 import com.doldolmeet.domain.fanMeeting.service.FanMeetingService;
 import com.doldolmeet.utils.Message;
+import io.openvidu.java.client.OpenViduHttpException;
+import io.openvidu.java.client.OpenViduJavaClientException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,5 +47,29 @@ public class FanMeetingController {
     @GetMapping("/fanMeetings/{fanMeetingId}/canEnter")
     public ResponseEntity<Message> canEnterFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
         return fanMeetingService.canEnterFanMeeting(fanMeetingId, request);
+    }
+
+    // 팬미팅의 가장 첫번째 대기방의 roomId 가져오는 API
+    @GetMapping("/fanMeetings/{fanMeetingId}/mainWaitRoom")
+    public ResponseEntity<Message> getMainWaitRoom(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getMainWaitRoom(fanMeetingId, request);
+    }
+
+    // 아이돌 입장에서 다음에 들어올 팬 데이터 가져오는 API
+    @GetMapping("fanMeetings/{fanMeetingId}/nextFan")
+    public ResponseEntity<Message> getNextFan(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.getNextFan(fanMeetingId, request);
+    }
+
+    // 아이돌 입장에서 자기 방에 있는 팬 다음 방으로 가라는 API
+    @GetMapping("fanMeetings/{fanMeetingId}/nextWaitRoom")
+    public ResponseEntity<Message> getNextFanRoom(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.getNextWaitRoomId(fanMeetingId, request);
+    }
+
+    // 현재 자신이 위치한 방의 sessionId 반환 API
+    @GetMapping("fanMeetings/{fanMeetingId}/currentRoom")
+    public ResponseEntity<Message> getCurrentRoomId(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.getCurrentRoomId(fanMeetingId, request);
     }
 }

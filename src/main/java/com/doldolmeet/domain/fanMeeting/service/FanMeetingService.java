@@ -1,33 +1,28 @@
 package com.doldolmeet.domain.fanMeeting.service;
 
+import com.doldolmeet.domain.commons.Role;
 import com.doldolmeet.domain.fanMeeting.dto.request.FanMeetingRequestDto;
-import com.doldolmeet.domain.fanMeeting.dto.response.FanMeetingResponseDto;
-import com.doldolmeet.domain.fanMeeting.dto.response.FanToFanMeetingResponseDto;
-import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
-import com.doldolmeet.domain.fanMeeting.entity.FanMeetingApplyStatus;
-import com.doldolmeet.domain.fanMeeting.entity.FanMeetingSearchOption;
-import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
+import com.doldolmeet.domain.fanMeeting.dto.response.*;
+import com.doldolmeet.domain.fanMeeting.entity.*;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.team.repository.TeamRepository;
-import com.doldolmeet.domain.users.admin.entity.Admin;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import com.doldolmeet.domain.users.idol.entity.Idol;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
+import com.doldolmeet.domain.waitRoom.entity.WaitRoomFan;
+import com.doldolmeet.domain.waitRoom.repository.WaitRoomFanRepository;
+import com.doldolmeet.domain.waitRoom.repository.WaitRoomRepository;
 import com.doldolmeet.exception.CustomException;
 import com.doldolmeet.exception.ErrorCode;
 import com.doldolmeet.security.jwt.JwtUtil;
 import com.doldolmeet.utils.Message;
 import com.doldolmeet.utils.UserUtils;
 import io.jsonwebtoken.Claims;
-import io.openvidu.java.client.Session;
-import io.openvidu.java.client.SessionProperties;
-import jakarta.persistence.Id;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -45,6 +40,8 @@ public class FanMeetingService {
     private final FanMeetingRepository fanMeetingRepository;
     private final TeamRepository teamRepository;
     private final FanToFanMeetingRepository fanToFanMeetingRepository;
+    private final WaitRoomFanRepository waitRoomFanRepository;
+    private final WaitRoomRepository waitRoomRepository;
     private final JwtUtil jwtUtil;
     private final UserUtils userUtils;
     private Claims claims;
@@ -203,5 +200,122 @@ public class FanMeetingService {
         }
 
         return new ResponseEntity<>(new Message("팬미팅 입장 가능", null), HttpStatus.OK);
+    }
+
+    public ResponseEntity<Message> getMainWaitRoom(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+
+        WaitRoom mainWaitRoom = fanMeeting.getWaitRooms().get(0);
+        mainWaitRoom.getRoomId();
+
+        MainWaitRoomResponseDto responseDto = MainWaitRoomResponseDto.builder()
+                .roomId(mainWaitRoom.getRoomId())
+                .build();
+
+        return new ResponseEntity<>(new Message("팬미팅의 메인 대기방 데이터 조회 성공", responseDto), HttpStatus.OK);
+    }
+
+    @Transactional
+    public ResponseEntity<Message> getNextFan(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Idol idol = userUtils.getIdol(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+        Optional<WaitRoom> waitRoomOpt = waitRoomRepository.findByRoomId(idol.getWaitRoomId());
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        if (!waitRoomOpt.isPresent()) {
+            throw new CustomException(WAITROOM_NOT_FOUND);
+        }
+
+        WaitRoom waitRoom = waitRoomOpt.get();
+        Optional<WaitRoomFan> waitRoomFan = waitRoomFanRepository.findFirstByWaitRoomOrderByOrderAsc(waitRoom);
+
+        if (!waitRoomFan.isPresent()) {
+            throw new CustomException(WAITROOMFAN_NOT_FOUND);
+        }
+
+        Fan fan = waitRoomFan.get().getFan();
+
+        NextFanResponseDto responseDto = NextFanResponseDto.builder()
+                .username(fan.getUserCommons().getUsername())
+                .connectionId(waitRoomFan.get().getConnectionId())
+                .waitRoomId(waitRoom.getRoomId())
+                .roomType(RoomType.WAITING_ROOM)
+                .build();
+
+        return new ResponseEntity<>(new Message("다음에 참여할 팬 조회 성공", responseDto), HttpStatus.OK);
+    }
+
+    public ResponseEntity<Message> getNextWaitRoomId(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        Idol idol = userUtils.getIdol(claims.getSubject());
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+        Optional<WaitRoom> waitRoomOpt = waitRoomRepository.findByRoomId(idol.getWaitRoomId());
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        if (!waitRoomOpt.isPresent()) {
+            throw new CustomException(WAITROOM_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+        WaitRoom waitRoom = waitRoomOpt.get();
+
+        int waitRoomIdx = fanMeeting.getWaitRooms().indexOf(waitRoom);
+
+        // 마지막 대기열이었을 경우,
+        if (waitRoomIdx == fanMeeting.getWaitRooms().size() - 1) {
+            return new ResponseEntity<>(new Message("마지막 대기열입니다.", "END"), HttpStatus.OK);
+        }
+
+        // 그 외엔 다음 대기열세션ID 반환
+        WaitRoom nextWaitRoom = fanMeeting.getWaitRooms().get(waitRoomIdx + 1);
+
+        NextWaitRoomResponseDto responseDto = NextWaitRoomResponseDto.builder()
+                .roomId(nextWaitRoom.getRoomId())
+                .roomType(RoomType.FAN_MEETING_ROOM)
+                .build();
+        return new ResponseEntity<>(new Message("다음 대기열ID 반환 성공", responseDto), HttpStatus.OK);
+    }
+
+    public ResponseEntity<Message> getCurrentRoomId(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        String role = (String)claims.get("auth");
+
+        Fan fan = userUtils.getFan(claims.getSubject());
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        Optional<WaitRoomFan> waitRoomFan = waitRoomFanRepository.findByFanIdAndWaitRoomId(fan.getId(), fanMeetingId);
+
+        if (!waitRoomFan.isPresent()) {
+            throw new CustomException(WAITROOMFAN_NOT_FOUND);
+        }
+
+        String roomId = waitRoomFan.get().getCurrRoomId();
+
+        CurrRoomInfoResponseDto responseDto = CurrRoomInfoResponseDto.builder()
+                .roomId(roomId)
+                .build();
+        return new ResponseEntity<>(new Message("현재 위치한 방의 세션ID 반환 성공", responseDto), HttpStatus.OK);
+
     }
 }
