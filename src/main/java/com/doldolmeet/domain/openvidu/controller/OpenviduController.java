@@ -71,4 +71,12 @@ public class OpenviduController {
     public ResponseEntity<Message> deleteFanParticipated(@PathVariable String idolName, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return openviduService.deleteWaitRoom(idolName, request);
     }
+
+    //대기방에 들어온 팬을 저장하는 API
+    @PostMapping("username/{username}/waitRoomId/{waitRoomId}/fanMeetingId/{fanMeetingId}/saveFanWaiting")
+    public ResponseEntity<Message> saveFanWaiting(@PathVariable String waitRoomId, @PathVariable Long fanMeetingId, @PathVariable String username) throws OpenViduJavaClientException, OpenViduHttpException {
+        return openviduService.saveFanWaiting(waitRoomId, fanMeetingId, username);
+    }
+
+
 }

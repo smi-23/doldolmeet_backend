@@ -373,4 +373,37 @@ public class OpenviduService {
         return new ResponseEntity<>(new Message("대기열에서 삭제 성공", null), HttpStatus.OK);
     }
 
+    public ResponseEntity<Message> saveFanWaiting(String waitRoomId,Long fanMeetingId,String username) {
+        Fan fan = userUtils.getFan(username);
+        WaitRoom waitRoom = userUtils.getWaitRoom(waitRoomId);
+        Optional<FanMeeting> fanMeeting = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeeting.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        Optional<FanToFanMeeting> fanToFanMeeting = fanToFanMeetingRepository.findByFanAndFanMeeting(fan, fanMeeting.get());
+
+        if (!fanToFanMeeting.isPresent()) {
+            throw new CustomException(FAN_TO_FANMEETING_NOT_FOUND);
+        }
+
+        Optional<WaitRoomFan> waitRoomFanOpt = waitRoomFanRepository.findByFanIdAndWaitRoomId(fan.getId(), waitRoom.getId());
+
+        if (waitRoomFanOpt.isPresent()) {
+            throw new CustomException(WAITROOMFAN_ALREADY_EXIST);
+        }
+
+        WaitRoomFan waitRoomFan = WaitRoomFan.builder()
+                .fan(fan)
+                .waitRoom(waitRoom)
+                .orderNumber(fanToFanMeeting.get().getOrderNumber())
+                .nextTeleRoomIdx(0L)
+                .nextWaitRoomIdx(0L)
+                .build();
+
+        waitRoomFanRepository.save(waitRoomFan);
+
+        return new ResponseEntity<>(new Message("대기열에 추가 성공", null), HttpStatus.OK);
+    }
 }

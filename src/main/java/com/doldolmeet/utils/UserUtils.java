@@ -1,11 +1,17 @@
 package com.doldolmeet.utils;
 
+import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
+import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.users.admin.entity.Admin;
 import com.doldolmeet.domain.users.admin.repository.AdminRepository;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import com.doldolmeet.domain.users.fan.repository.FanRepository;
 import com.doldolmeet.domain.users.idol.entity.Idol;
+import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.users.idol.repository.IdolRepository;
+import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
+import com.doldolmeet.domain.waitRoom.repository.WaitRoomRepository;
+import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
 import com.doldolmeet.exception.CustomException;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +27,9 @@ public class UserUtils {
     private final AdminRepository adminRepository;
     private final FanRepository fanRepository;
     private final IdolRepository idolRepository;
+    private final WaitRoomRepository waitRoomRepository;
+    private final FanToFanMeetingRepository fanToFanMeetingRepository;
+    private final FanMeetingRepository fanMeetingRepository;
 
     public void checkIfUserExist(Claims claims) {
         String username = claims.getSubject();
@@ -64,4 +73,18 @@ public class UserUtils {
         return idol.get();
 
     }
+
+
+    public WaitRoom getWaitRoom(String waitRoomId) {
+        Optional<WaitRoom> waitRoom = waitRoomRepository.findByRoomId(waitRoomId);
+
+        if (!waitRoom.isPresent()) {
+            throw new CustomException(NOT_USER);
+        }
+
+        return waitRoom.get();
+    }
+
+
+
 }
