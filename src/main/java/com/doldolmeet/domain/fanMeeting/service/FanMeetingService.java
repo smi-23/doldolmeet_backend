@@ -13,6 +13,7 @@ import com.doldolmeet.domain.users.fan.entity.Fan;
 import com.doldolmeet.domain.users.fan.repository.FanRepository;
 import com.doldolmeet.domain.users.idol.entity.Idol;
 import com.doldolmeet.domain.users.idol.repository.IdolRepository;
+import com.doldolmeet.domain.waitRoom.chat.repository.ChatRoomRepository;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoomFan;
 import com.doldolmeet.domain.waitRoom.repository.WaitRoomFanRepository;
@@ -47,6 +48,7 @@ public class FanMeetingService {
     private final WaitRoomFanRepository waitRoomFanRepository;
     private final WaitRoomRepository waitRoomRepository;
     private final TeleRoomFanRepository teleRoomFanRepository;
+    private final ChatRoomRepository chatRoomRepository;
     private final JwtUtil jwtUtil;
     private final UserUtils userUtils;
     private Claims claims;
@@ -62,6 +64,8 @@ public class FanMeetingService {
             throw new CustomException(TEAM_NOT_FOUND);
         }
 
+        String chatRoomId = chatRoomRepository.createChatRoom(requestDto.getFanMeetingName()).getRoomId();
+
         FanMeeting fanMeeting = FanMeeting.builder()
                 .startTime(requestDto.getStartTime())
                 .endTime(requestDto.getEndTime())
@@ -73,6 +77,7 @@ public class FanMeetingService {
                 .fanToFanMeetings(new ArrayList<>())
                 .teleRooms(new ArrayList<>())
                 .nextOrder(1L)
+                .chatRoomId(chatRoomId)
                 .build();
 
         fanMeetingRepository.save(fanMeeting);
@@ -104,6 +109,7 @@ public class FanMeetingService {
                     .imgUrl(fanMeeting.getFanMeetingImgUrl())
                     .title(fanMeeting.getFanMeetingName())
                     .startTime(fanMeeting.getStartTime())
+                    .chatRoomId(fanMeeting.getChatRoomId())
                     .build();
 
             result.add(responseDto);
@@ -125,11 +131,14 @@ public class FanMeetingService {
 
         FanMeeting fanMeeting = fanMeetingOpt.get();
 
+        String chatRoomId = chatRoomRepository.createChatRoom(fanMeeting.getFanMeetingName()).getRoomId();
+
         FanToFanMeeting fanToFanMeeting = FanToFanMeeting.builder()
                 .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
                 .fan(fan)
                 .fanMeeting(fanMeeting)
                 .orderNumber(fanMeeting.getNextOrder())
+                .chatRoomId(chatRoomId)
                 .build();
 
         fanMeeting.setNextOrder(fanMeeting.getNextOrder() + 1L);
@@ -144,6 +153,7 @@ public class FanMeetingService {
                 .fanId(fan.getId())
                 .orderNumber(fanToFanMeeting.getOrderNumber())
                 .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
+                .chatRoomId(chatRoomId)
                 .build();
 
         return new ResponseEntity<>(new Message("팬미팅 신청 성공", responseDto), HttpStatus.OK);
@@ -188,6 +198,7 @@ public class FanMeetingService {
                 .title(fanMeeting.getFanMeetingName())
                 .startTime(fanMeeting.getStartTime())
                 .endTime(fanMeeting.getEndTime())
+                .chatRoomId(fanMeeting.getChatRoomId())
                 .build();
 
         return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);
@@ -350,4 +361,27 @@ public class FanMeetingService {
             throw new CustomException(FAN_NOT_IN_ROOM);
         }
     }
+
+    // 팬미팅 조회 함수
+    public ResponseEntity<Message> getFanMeeting(Long fanMeetingId, HttpServletRequest request) {
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+
+        FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
+                .id(fanMeeting.getId())
+                .imgUrl(fanMeeting.getFanMeetingImgUrl())
+                .title(fanMeeting.getFanMeetingName())
+                .startTime(fanMeeting.getStartTime())
+                .endTime(fanMeeting.getEndTime())
+                .chatRoomId(fanMeeting.getChatRoomId())
+                .build();
+
+        return new ResponseEntity<>(new Message("팬미팅 조회 성공", responseDto), HttpStatus.OK);
+    }
+
 }

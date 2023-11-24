@@ -73,5 +73,9 @@ public class FanMeetingController {
         return fanMeetingService.getCurrentRoomId(fanMeetingId, request);
     }
 
-
+    // 팬미팅 조회 API
+    @GetMapping("/fanMeetings/{fanMeetingId}")
+    public ResponseEntity<Message> getFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getFanMeeting(fanMeetingId, request);
+    }
 }

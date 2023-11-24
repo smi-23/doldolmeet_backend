@@ -18,6 +18,7 @@ public class FanMeetingResponseDto {
     private Long id;
     private String imgUrl;
     private String title;
+    private String chatRoomId;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startTime;
@@ -30,5 +31,6 @@ public class FanMeetingResponseDto {
         this.title = fanMeeting.getFanMeetingName();
         this.startTime = fanMeeting.getStartTime();
         this.endTime =fanMeeting.getEndTime();
+        this.chatRoomId = fanMeeting.getChatRoomId();
     }
 }

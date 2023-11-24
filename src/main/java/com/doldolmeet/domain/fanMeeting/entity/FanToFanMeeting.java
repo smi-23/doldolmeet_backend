@@ -36,6 +36,9 @@ public class FanToFanMeeting {
     @Column(nullable = false)
     private Long orderNumber;
 
+    @Column(nullable = false)
+    private String chatRoomId;
+
     public void setUserAndFanMeeting(Fan fan, FanMeeting fanMeeting) {
         this.fan = fan;
         this.fanMeeting = fanMeeting;
