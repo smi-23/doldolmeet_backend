@@ -51,6 +51,9 @@ public class FanMeeting {
     @Column
     private Long nextOrder;
 
+    @Column
+    private String chatRoomId;
+
     // 팬미팅 신청서들
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();
@@ -65,7 +68,7 @@ public class FanMeeting {
     // 통화방 해시맵
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<TeleRoom> teleRooms = new ArrayList<>();
-  
+
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<Video> videos = new ArrayList<>();
 
