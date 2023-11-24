@@ -1,7 +1,6 @@
 package com.doldolmeet.domain.users.idol.entity;
 
 import com.doldolmeet.domain.commons.Role;
-import com.doldolmeet.domain.fanMeeting.entity.IdolToFanMeeting;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.commons.UserCommons;
 import jakarta.persistence.*;
@@ -37,9 +36,6 @@ public class Idol {
 
     private String teleRoomId;
     private String waitRoomId;
-
-    @OneToMany(mappedBy = "idol", cascade = CascadeType.ALL)
-    private List<IdolToFanMeeting> idolToFanMeetings = new ArrayList<>();
 
     public void createTeleRoomId() {
         this.teleRoomId = UUID.randomUUID().toString();
