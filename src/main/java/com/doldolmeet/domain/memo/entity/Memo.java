@@ -1,10 +1,8 @@
 package com.doldolmeet.domain.memo.entity;
 
-import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.memo.dto.MemoRequestDto;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,12 +10,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity(name = "memos")
 public class Memo extends Timestamped{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
     @Column(nullable = false)
     private String contents;

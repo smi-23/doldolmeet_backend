@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface MemoRepository extends JpaRepository<Memo, Long> {
     List<Memo> findAllByOrderByCreatedAtDesc();
-    List<Memo> findByFanOrderByCreatedAtDesc(Fan fan);
+    List<Memo> findByFanOrderByCreatedAtAsc(Fan fan);
 
 }

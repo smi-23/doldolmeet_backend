@@ -28,13 +28,13 @@ public class MemoService {
     private final JwtUtil jwtUtil;
     private final UserUtils userUtils;
     private Claims claims;
+    private Fan fan;
 
     // 메모 생성
     @Transactional
     public ResponseEntity<Message> createMemo(MemoRequestDto requestDto, HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
-
-        Fan fan = userUtils.getFan(claims.getSubject());
+        fan = userUtils.getFan(claims.getSubject());
 
         Memo memo = memoRepository.saveAndFlush(new Memo(requestDto, fan));
         MemoResponseDto responseDto = new MemoResponseDto(memo.getId(), memo.getContents(), memo.getCreatedAt());
@@ -56,10 +56,10 @@ public class MemoService {
     // 해당 fan이 작성한 메모 조회
     @Transactional(readOnly = true)
     public ResponseEntity<List<MemoResponseDto>> getMyMemos(HttpServletRequest request) {
-        Claims claims = jwtUtil.getClaims(request);
-        Fan fan = userUtils.getFan(claims.getSubject());
+        claims = jwtUtil.getClaims(request);
+        fan = userUtils.getFan(claims.getSubject());
 
-        List<Memo> myMemos = memoRepository.findByFanOrderByCreatedAtDesc(fan);
+        List<Memo> myMemos = memoRepository.findByFanOrderByCreatedAtAsc(fan);
 
         List<MemoResponseDto> responseDtos = myMemos.stream()
                 .map(memo -> new MemoResponseDto(memo.getId(), memo.getContents(), memo.getCreatedAt()))
@@ -67,8 +67,6 @@ public class MemoService {
 
         return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
-
-
 
     // 선택한 메모 조회
     @Transactional(readOnly = true)

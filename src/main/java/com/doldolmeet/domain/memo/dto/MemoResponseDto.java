@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 public class MemoResponseDto {
     private Long id;
     private String contents;
-    private String createdAt; // 변경
+    private String createdAt;
 
     public MemoResponseDto(Long id, String contents, LocalDateTime createdAt) {
         this.id = id;

@@ -30,7 +30,8 @@ public class MemoController {
     public ResponseEntity<List<MemoResponseDto>> getAllMemos() {
         return memoService.getAllMemos();
     }
-    // 해당 fan이 작성한 전체 메모 조회
+    // 해당 fan이 작성한 전체 메모 조회 필요하면 만들어야 함
+
     // 현재 사용자의 메모 조회
     @GetMapping("/memos/my")
     public ResponseEntity<List<MemoResponseDto>> getMyMemos(HttpServletRequest request) {
