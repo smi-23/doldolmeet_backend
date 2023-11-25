@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 // MemoController.java
 
 @RestController
@@ -21,6 +23,18 @@ public class MemoController {
     @PostMapping("/memos")
     public ResponseEntity<Message> createMemo(@RequestBody @Valid MemoRequestDto requestDto, HttpServletRequest request) {
         return memoService.createMemo(requestDto, request);
+    }
+
+    // 최신순으로 정렬된 모든 메모 조회
+    @GetMapping("/memos")
+    public ResponseEntity<List<MemoResponseDto>> getAllMemos() {
+        return memoService.getAllMemos();
+    }
+    // 해당 fan이 작성한 전체 메모 조회
+    // 현재 사용자의 메모 조회
+    @GetMapping("/memos/my")
+    public ResponseEntity<List<MemoResponseDto>> getMyMemos(HttpServletRequest request) {
+        return memoService.getMyMemos(request);
     }
 
     // 선택한 메모 조회
@@ -41,4 +55,3 @@ public class MemoController {
         return memoService.deleteMemo(id);
     }
 }
-
