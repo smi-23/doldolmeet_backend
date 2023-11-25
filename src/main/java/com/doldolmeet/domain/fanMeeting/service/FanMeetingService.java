@@ -384,4 +384,44 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("팬미팅 조회 성공", responseDto), HttpStatus.OK);
     }
 
+
+    // FanToFanMeeting 조회 함수: fan의 username과 fan_meeting의 id를 바탕으로 fan_to_fan_meeting을 조회
+    public ResponseEntity<Message> getFanToFanMeeting(Long fanMeetingId, HttpServletRequest request) {
+
+        claims = jwtUtil.getClaims(request);
+        String username = claims.getSubject();
+
+        Optional<Fan> fanOpt = fanRepository.findByUserCommonsUsername(username);
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanOpt.isPresent()) {
+            throw new CustomException(NOT_USER);
+        }
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        Fan fan = fanOpt.get();
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+
+        Optional<FanToFanMeeting> fanToFanMeetingOpt = fanToFanMeetingRepository.findByFanAndFanMeeting(fan, fanMeeting);
+
+        if (!fanToFanMeetingOpt.isPresent()) {
+            throw new CustomException(FAN_TO_FANMEETING_NOT_FOUND);
+        }
+
+        FanToFanMeeting fanToFanMeeting = fanToFanMeetingOpt.get();
+
+        FanToFanMeetingResponseDto responseDto = FanToFanMeetingResponseDto.builder()
+                .id(fanToFanMeeting.getId())
+                .fanMeetingId(fanMeetingId)
+                .fanId(fan.getId())
+                .orderNumber(fanToFanMeeting.getOrderNumber())
+                .fanMeetingApplyStatus(fanToFanMeeting.getFanMeetingApplyStatus())
+                .chatRoomId(fanToFanMeeting.getChatRoomId())
+                .build();
+
+        return new ResponseEntity<>(new Message("FanToFanMeeting 조회 성공", responseDto), HttpStatus.OK);
+    }
 }

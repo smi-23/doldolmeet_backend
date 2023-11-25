@@ -78,4 +78,10 @@ public class FanMeetingController {
     public ResponseEntity<Message> getFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
         return fanMeetingService.getFanMeeting(fanMeetingId, request);
     }
+
+    // fan_to_fan_meeting 조회 API
+    @GetMapping("/fanMeetings/{fanMeetingId}/fanToFanMeeting")
+    public ResponseEntity<Message> getFanToFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getFanToFanMeeting(fanMeetingId, request);
+    }
 }
