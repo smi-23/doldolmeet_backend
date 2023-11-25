@@ -1,0 +1,84 @@
+package com.doldolmeet.domain.memo.service;
+
+
+import com.doldolmeet.domain.memo.dto.MemoRequestDto;
+import com.doldolmeet.domain.memo.dto.MemoResponseDto;
+import com.doldolmeet.domain.memo.entity.Memo;
+import com.doldolmeet.domain.memo.repository.MemoRepository;
+import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.security.jwt.JwtUtil;
+import com.doldolmeet.utils.Message;
+import com.doldolmeet.utils.UserUtils;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class MemoService {
+    private final MemoRepository memoRepository;
+    private final JwtUtil jwtUtil;
+    private final UserUtils userUtils;
+    private Claims claims;
+
+    // 메모 생성
+    @Transactional
+    public ResponseEntity<Message> createMemo(MemoRequestDto requestDto, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+
+        Fan fan = userUtils.getFan(claims.getSubject());
+
+        Memo memo = memoRepository.saveAndFlush(new Memo(requestDto, fan));
+        MemoResponseDto responseDto = new MemoResponseDto(memo.getId(), memo.getContents());
+        return new ResponseEntity<>(new Message("메모 생성 성공", responseDto), HttpStatus.CREATED);
+    }
+
+    // 선택한 메모 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getMemo(Long id) {
+        Optional<Memo> optionalMemo = memoRepository.findById(id);
+
+        if (optionalMemo.isPresent()) {
+            Memo memo = optionalMemo.get();
+            MemoResponseDto responseDto = new MemoResponseDto(memo.getId(), memo.getContents());
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new Message("메모를 찾을 수 없습니다.", null), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // 메모 수정
+    @Transactional
+    public ResponseEntity<Message> updateMemo(Long id, MemoRequestDto requestDto) {
+        Optional<Memo> optionalMemo = memoRepository.findById(id);
+
+        if (optionalMemo.isPresent()) {
+            Memo memo = optionalMemo.get();
+            memo.update(requestDto);
+            memoRepository.save(memo);
+            MemoResponseDto responseDto = new MemoResponseDto(memo.getId(), memo.getContents());
+            return new ResponseEntity<>(new Message("메모 업데이트 성공", responseDto), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new Message("메모를 찾을 수 없습니다.", null), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // 메모 삭제
+    @Transactional
+    public ResponseEntity<Message> deleteMemo(Long id) {
+        Optional<Memo> optionalMemo = memoRepository.findById(id);
+
+        if (optionalMemo.isPresent()) {
+            memoRepository.deleteById(id);
+            return new ResponseEntity<>(new Message("메모 삭제 성공", null), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new Message("메모를 찾을 수 없습니다.", null), HttpStatus.NOT_FOUND);
+        }
+    }
+}

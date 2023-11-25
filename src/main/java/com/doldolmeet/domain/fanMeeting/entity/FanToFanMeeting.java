@@ -1,5 +1,6 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
+import com.doldolmeet.domain.memo.entity.Memo;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,4 +44,6 @@ public class FanToFanMeeting {
         this.fan = fan;
         this.fanMeeting = fanMeeting;
     }
+
+
 }
