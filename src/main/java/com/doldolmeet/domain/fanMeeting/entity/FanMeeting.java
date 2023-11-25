@@ -51,6 +51,9 @@ public class FanMeeting {
     @Column
     private Long nextOrder;
 
+    @Column
+    private Boolean isRoomsCreated;
+
     // 팬미팅 신청서들
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();

@@ -75,6 +75,7 @@ public class FanMeetingService {
                 .fanToFanMeetings(new ArrayList<>())
                 .teleRooms(new ArrayList<>())
                 .fanMeetingRoomOrders(new ArrayList<>())
+                .isRoomsCreated(false)
                 .nextOrder(1L)
                 .build();
 
@@ -397,6 +398,21 @@ public class FanMeetingService {
         else {
             throw new CustomException(FAN_NOT_IN_ROOM);
         }
+    }
+
+    @Transactional
+    public ResponseEntity<Message> getRoomsId(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+
+        List<FanMeetingRoomOrder> roomOrders = fanMeetingRoomOrderRepository.findByFanMeetingId(fanMeetingId);
+
+        List<String> result = new ArrayList<>();
+
+        for (FanMeetingRoomOrder roomOrder : roomOrders) {
+            result.add(roomOrder.getCurrentRoom());
+        }
+
+        return new ResponseEntity<>(new Message("방들의 세션ID 반환 성공", result), HttpStatus.OK);
     }
 
 //    @Transactional
