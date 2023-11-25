@@ -41,6 +41,10 @@ public class SseService {
     //Emitter 추가
     public ResponseEntity<Message> createEmitter(Long fanMeetingId, String username) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        if (emitters.get(fanMeetingId) == null) {
+            emitters.put(fanMeetingId, new ConcurrentHashMap<>());
+        }
+
         emitters.get(fanMeetingId).put(username, emitter);
 
         try {
