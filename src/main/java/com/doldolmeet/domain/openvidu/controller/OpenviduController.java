@@ -35,10 +35,10 @@ public class OpenviduController {
      */
 
     // 화상통화방을 만드는 API
-    @PostMapping("/api/sessions")
-    public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params)
+    @PostMapping("/api/sessions/{fanMeetingId}")
+    public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params, @PathVariable Long fanMeetingId)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        return openviduService.initializeSession(params);
+        return openviduService.initializeSession(params, fanMeetingId);
     }
 
     /**
@@ -94,5 +94,11 @@ public class OpenviduController {
     @PostMapping("updateConnection")
     public ResponseEntity<Message> updateConnection(@RequestBody ConnUpdateRequestDto requestDto, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return openviduService.updateConnection(requestDto, request);
+    }
+
+    // 팬미팅 방 생성 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/rooms")
+    public ResponseEntity<Message> createFanMeetingRooms(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException{
+        return openviduService.createFanMeetingRooms(fanMeetingId, request);
     }
 }

@@ -66,4 +66,6 @@ public class FanMeeting {
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<Video> videos = new ArrayList<>();
 
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<FanMeetingRoomOrder> fanMeetingRoomOrders = new ArrayList<>();
 }

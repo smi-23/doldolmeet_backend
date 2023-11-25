@@ -56,7 +56,8 @@ public enum ErrorCode {
     TELE_ROOMFAN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 화상방에 TeleRoomFan이 없습니다."),
     FAN_NOT_IN_ROOM(HttpStatus.NOT_FOUND, "해당 팬미팅에 팬이 없습니다."),
     TELEROOMFAN_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "해당 화상방에 이미 같은 팬이 존재합니다."),
-    UNKNOWN_TYPE(HttpStatus.BAD_REQUEST, "알 수 없는 타입입니다.");
+    UNKNOWN_TYPE(HttpStatus.BAD_REQUEST, "알 수 없는 타입입니다."),
+    NOT_FOUND_FANTOFANMEETING(HttpStatus.NOT_FOUND, "해당 팬미팅을 신청하지 않은 팬입니다.");
 
     private final HttpStatus httpStatus;
     private final String data;

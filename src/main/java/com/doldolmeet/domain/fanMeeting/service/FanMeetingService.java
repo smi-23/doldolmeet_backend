@@ -4,6 +4,7 @@ import com.doldolmeet.domain.fanMeeting.dto.request.FanMeetingRequestDto;
 import com.doldolmeet.domain.fanMeeting.dto.response.*;
 import com.doldolmeet.domain.fanMeeting.entity.*;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
+import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRoomOrderRepository;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
 import com.doldolmeet.domain.teleRoom.repository.TeleRoomFanRepository;
 import com.doldolmeet.domain.team.entity.Team;
@@ -47,6 +48,7 @@ public class FanMeetingService {
     private final WaitRoomFanRepository waitRoomFanRepository;
     private final WaitRoomRepository waitRoomRepository;
     private final TeleRoomFanRepository teleRoomFanRepository;
+    private final FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
     private final JwtUtil jwtUtil;
     private final UserUtils userUtils;
     private Claims claims;
@@ -72,8 +74,54 @@ public class FanMeetingService {
                 .waitRooms(new ArrayList<>())
                 .fanToFanMeetings(new ArrayList<>())
                 .teleRooms(new ArrayList<>())
+                .fanMeetingRoomOrders(new ArrayList<>())
                 .nextOrder(1L)
                 .build();
+
+
+        List<Idol> idols = team.get().getIdols();
+
+        int sz = idols.size() * 2;
+
+        // 메인 대기방 생성
+        FanMeetingRoomOrder roomOrder;
+        roomOrder = FanMeetingRoomOrder.builder()
+                .currentRoom(UUID.randomUUID().toString())
+                .nextRoom(null)
+                .fanMeeting(fanMeeting)
+                .nickname("main")
+                .type("mainWaitRoom")
+                .build();
+
+        fanMeeting.getFanMeetingRoomOrders().add(roomOrder);
+
+        for (int i = 0; i < sz; i++) {
+            if (i == sz - 1) {
+                roomOrder = FanMeetingRoomOrder.builder()
+                        .currentRoom(UUID.randomUUID().toString())
+                        .nextRoom("END")
+                        .fanMeeting(fanMeeting)
+                        .nickname(idols.get(i/2).getUserCommons().getNickname())
+                        .type("teleRoom")
+                        .build();
+                fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(roomOrder.getCurrentRoom());
+
+            } else {
+                String myRoomId = UUID.randomUUID().toString();;
+
+                roomOrder = FanMeetingRoomOrder.builder()
+                        .currentRoom(myRoomId)
+                        .nextRoom(null)
+                        .fanMeeting(fanMeeting)
+                        .nickname(idols.get(i/2).getUserCommons().getNickname())
+                        .type(i % 2 == 0 ? "waitRoom" : "teleRoom")
+                        .build();
+
+                fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(myRoomId);
+            }
+
+            fanMeeting.getFanMeetingRoomOrders().add(roomOrder);
+        }
 
         fanMeetingRepository.save(fanMeeting);
         Map<String, Long> result = new HashMap<>();
@@ -221,6 +269,7 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("팬미팅 입장 가능", null), HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity<Message> getMainWaitRoom(Long fanMeetingId, HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
 
@@ -232,11 +281,10 @@ public class FanMeetingService {
 
         FanMeeting fanMeeting = fanMeetingOpt.get();
 
-        WaitRoom mainWaitRoom = fanMeeting.getWaitRooms().get(0);
-        mainWaitRoom.getRoomId();
+        String mainWaitRoomId = fanMeeting.getFanMeetingRoomOrders().get(0).getCurrentRoom();
 
         MainWaitRoomResponseDto responseDto = MainWaitRoomResponseDto.builder()
-                .roomId(mainWaitRoom.getRoomId())
+                .roomId(mainWaitRoomId)
                 .build();
 
         return new ResponseEntity<>(new Message("팬미팅의 메인 대기방 데이터 조회 성공", responseDto), HttpStatus.OK);
@@ -350,4 +398,41 @@ public class FanMeetingService {
             throw new CustomException(FAN_NOT_IN_ROOM);
         }
     }
+
+//    @Transactional
+//    public ResponseEntity<Message> createFanMeetingRooms(Long fanMeetingId, HttpServletRequest request) {
+//        // 어드민인지 체크
+//        claims = jwtUtil.getClaims(request);
+//        userUtils.checkIfAdmin(claims);
+//
+//        FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
+//
+//        // 팬미팅에서 팀을 뽑아낸 후,팀의 아이돌을 뽑아낸 후, FanMeetingRoomOrder 생성
+//        Team team = fanMeeting.getTeam();
+//        List<Idol> idols = team.getIdols();
+//
+//        int sz = idols.size() * 2;
+//
+//        for (int i = 0; i < sz; i++) {
+//            FanMeetingRoomOrder roomOrder;
+//            if (i == sz - 1) {
+//                roomOrder = FanMeetingRoomOrder.builder()
+//                        .currentRoom(UUID.randomUUID().toString())
+//                        .nextRoom("END")
+//                        .fanMeeting(fanMeeting)
+//                        .build();
+//
+//            } else {
+//                roomOrder = FanMeetingRoomOrder.builder()
+//                        .currentRoom(UUID.randomUUID().toString())
+//                        .nextRoom(UUID.randomUUID().toString())
+//                        .fanMeeting(fanMeeting)
+//                        .build();
+//            }
+//
+//            fanMeetingRoomOrderRepository.save(roomOrder);
+//        }
+//
+//        return new ResponseEntity<>(new Message("팬미팅에 대해 각 통화방과 대기방 생성 성공", null), HttpStatus.OK);
+//    }
 }

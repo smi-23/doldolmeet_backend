@@ -47,6 +47,7 @@ public class GuestService {
         UserCommons userCommons = UserCommons.builder()
                 .username(username)
                 .password(password)
+                .nickname(requestDto.getNickname())
                 .role(requestDto.getRole())
                 .build();
 
@@ -62,7 +63,6 @@ public class GuestService {
         else if (requestDto.getRole().equals(Role.IDOL)) {
             Idol idol = Idol.builder()
                             .userCommons(userCommons)
-                            .stageName(requestDto.getStageName())
                             .build();
 
             Optional<Team> team = teamRepository.findByTeamName(requestDto.getTeamName());

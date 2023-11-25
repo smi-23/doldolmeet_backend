@@ -19,6 +19,9 @@ public class UserCommons {
     @Column(nullable = false, unique = false)
     private String password;
 
+    @Column(nullable = false, unique = true)
+    private String nickname;
+
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private Role role;
