@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,6 +42,15 @@ public class SseService {
     public ResponseEntity<Message> createEmitter(Long fanMeetingId, String username) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.get(fanMeetingId).put(username, emitter);
+
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connect")
+                    .data("connected!"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         emitter.onTimeout(() -> emitters.get(fanMeetingId).remove(username));
 
         log.info("SseService.addEmitter() called");
