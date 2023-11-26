@@ -493,7 +493,8 @@ public class OpenviduService {
         return new ResponseEntity<>(new Message("팬미팅 전체 방 생성 성공", responseDto), HttpStatus.OK);
     }
 
-    public List<Connection> getConnections(String sessionId) {
+    public List<Connection> getConnections(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+        openvidu.fetch();
         Session session = openvidu.getActiveSession(sessionId);
 
         if (session == null) {

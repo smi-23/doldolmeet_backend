@@ -3,9 +3,6 @@ package com.doldolmeet.domain.fanMeeting.sse;
 import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
 import com.doldolmeet.exception.CustomException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.openvidu.java.client.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,6 +85,8 @@ public class SseService {
             throw new CustomException(NOT_FOUND_FANTOFANMEETING);
         }
 
+
+
         waitingRooms.get(fanMeetingId).get(sessionId).add(new UserNameAndOrderNumber(username, ftfm.get().getOrderNumber()));
     }
 
@@ -98,12 +97,14 @@ public class SseService {
         SortedSet sortedSet = waitingRooms.get(fanMeetingId).get(sessionId);
 
         // sortedSet에서 해당 user의 UserNameAndOrderNumber를 찾아서 제거
-        Iterator iterator = sortedSet.iterator();
-        while (iterator.hasNext()) {
-            UserNameAndOrderNumber userNameAndOrderNumber = (UserNameAndOrderNumber) iterator.next();
-            if (userNameAndOrderNumber.getUsername().equals(username)) {
-                sortedSet.remove(userNameAndOrderNumber);
-                break;
+        if (sortedSet != null) {
+            Iterator iterator = sortedSet.iterator();
+            while (iterator.hasNext()) {
+                UserNameAndOrderNumber userNameAndOrderNumber = (UserNameAndOrderNumber) iterator.next();
+                if (userNameAndOrderNumber.getUsername().equals(username)) {
+                    sortedSet.remove(userNameAndOrderNumber);
+                    break;
+                }
             }
         }
     }

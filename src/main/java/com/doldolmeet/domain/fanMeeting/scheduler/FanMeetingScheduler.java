@@ -36,7 +36,7 @@ public class FanMeetingScheduler {
 //        // 여기에 팬미팅에 대한 특정 로직을 추가하세요.
 //    };
 
-    @Scheduled(fixedRate = 60 * 1000) // 매 분마다 실행
+    @Scheduled(fixedRate = 10 * 1000) // 매 분마다 실행
     @Transactional
     public void checkFanMeetingStartTime() throws IOException {
         // 오늘 열려있는 팬미팅들 조회

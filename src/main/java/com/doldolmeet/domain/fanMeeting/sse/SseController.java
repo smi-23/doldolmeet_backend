@@ -61,7 +61,7 @@ public class SseController {
             return eventMessage;
         }
 
-        String username = parseUsername(eventMessage);
+        String username = parseUsername(eventMessage); // TODO: sessionCreated와 같이 username이 없는 경우 예외처리
         Long fanMeetingId = parseFanMeetingId(eventMessage);
         String sessionId = parseSessionId(eventMessage);
 
