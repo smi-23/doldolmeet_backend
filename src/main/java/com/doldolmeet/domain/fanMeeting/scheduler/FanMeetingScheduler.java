@@ -49,24 +49,38 @@ public class FanMeetingScheduler {
 
         log.info("현재 시간: " + currentTime);
 
+        // 오늘 열리는 팬미팅들 순회.
         for (FanMeeting fanMeeting : fanMeetings) {
+            // 시작해야 하는 팬미팅들 순회.
             if (fanMeeting.getStartTime().isBefore(currentTime)) {
                 log.info("FanMeeting start time: " + fanMeeting.getStartTime());
 
-                    // 대기방 입장 로직
-                    // 일단, 팬들은 대기방에 입장해 있음. -> SSE 생성되어 있음.
-                    // 팬미팅 시작시간이 되면, 팬미팅에 참여하는 팬들을 대기방에서 팬미팅방으로 이동시킴.
-                    // 팬미팅방으로 이동시키는 방법은, 팬미팅방에 입장하는 SSE를 생성해서, 팬들에게 SSE를 보내는 방법이 있음.
-                    // 해당 팬미팅의 메인 대기방에 해당하는 세션ID 구해야 함.
+                // 관리자가 방 생성하지 않았으면 스케쥴링 안함.
+                if (!fanMeeting.getIsRoomsCreated()) {
+                    log.info(fanMeeting.getFanMeetingName() + "아직 관리자가 방 생성 안함.");
+                }
 
+                // 관리자가 방 생성한 경우,
+                else {
 
-                    Map<String, SortedSet<UserNameAndOrderNumber>> s = SseService.waitingRooms.get(fanMeeting.getId());
+                    // 아직 팬이 메인 대기방 안들어왔으면 스케쥴링 안함.
+                    if (SseService.waitingRooms.get(fanMeeting.getId()) == null) {
+                        log.info(fanMeeting.getFanMeetingName() + "아직 팬이 안 들어와서 대기방 생성도 안됨");
+                        continue;
+                    }
+
                     FanMeetingRoomOrder roomOrder = fanMeeting.getFanMeetingRoomOrders().get(0); // TODO: NullPointerException
-
                     String mainRoomId = roomOrder.getCurrentRoom();
 
-                    UserNameAndOrderNumber a =  s.get(mainRoomId).first();
-                    String username = a.getUsername();
+                    // 팬이 들어와서 메인 대기방 자료구조는 생성되었는데, 아무도 없으면 스케쥴링 안함.
+                    if (SseService.waitingRooms.get(fanMeeting.getId()).get(mainRoomId).isEmpty()) {
+                        log.info(fanMeeting.getFanMeetingName() + "메인 대기방에 아무도 없음.");
+                        continue;
+                    }
+
+                    UserNameAndOrderNumber userInfo = SseService.waitingRooms.get(fanMeeting.getId()).get(mainRoomId).first();
+
+                    String username = userInfo.getUsername();
                     SseEmitter emitter = SseService.emitters.get(fanMeeting.getId()).get(username);
 
                     Map<String, String> params = new HashMap<>();
@@ -81,9 +95,12 @@ public class FanMeetingScheduler {
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+
+                    log.info(fanMeeting.getFanMeetingName() + "스케쥴링 완료");
+                }
+            } else {
+                log.info("FanMeeting start time: " + fanMeeting.getStartTime() + "아직 시작 안함.");
             }
         }
-
-        log.info("팬미팅 스케쥴링 완료");
     }
 }

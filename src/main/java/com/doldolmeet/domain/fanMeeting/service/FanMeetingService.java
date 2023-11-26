@@ -415,6 +415,15 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("방들의 세션ID 반환 성공", result), HttpStatus.OK);
     }
 
+    @Transactional
+    public ResponseEntity<Message> roomCreated(Long fanMeetingId, HttpServletRequest request) {
+        FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
+        fanMeeting.setIsRoomsCreated(true);
+
+        fanMeetingRepository.save(fanMeeting);
+        return new ResponseEntity<>(new Message("관리자가 방 생성 완료", null), HttpStatus.OK);
+    }
+
 //    @Transactional
 //    public ResponseEntity<Message> createFanMeetingRooms(Long fanMeetingId, HttpServletRequest request) {
 //        // 어드민인지 체크

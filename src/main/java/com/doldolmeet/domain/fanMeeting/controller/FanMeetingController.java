@@ -78,4 +78,10 @@ public class FanMeetingController {
     public ResponseEntity<Message> getRoomsId(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.getRoomsId(fanMeetingId, request);
     }
+
+    // 해당 팬미팅 방 생성되었다고 알려주는 API
+    @PostMapping("fanMeetings/{fanMeetingId}/roomCreated")
+    public ResponseEntity<Message> roomCreated(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.roomCreated(fanMeetingId, request);
+    }
 }
