@@ -4,7 +4,6 @@ import com.doldolmeet.domain.capture.service.CaptureService;
 import com.doldolmeet.utils.Message;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

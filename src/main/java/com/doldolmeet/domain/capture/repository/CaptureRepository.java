@@ -1,7 +1,6 @@
 package com.doldolmeet.domain.capture.repository;
 
 import com.doldolmeet.domain.capture.entity.Capture;
-import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import org.springframework.data.jpa.repository.JpaRepository;
 

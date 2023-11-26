@@ -3,11 +3,6 @@ package com.doldolmeet.s3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
-import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
-import com.doldolmeet.domain.fanMeeting.service.FanMeetingService;
-import com.doldolmeet.domain.video.entity.Video;
-import com.doldolmeet.domain.video.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -23,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,9 +29,6 @@ public class AwsS3Service {
     private String bucket;
 
     private final AmazonS3 amazonS3;
-    private final VideoRepository videoRepository;
-    private final FanMeetingRepository fanMeetingRepository;
-
 
     // 캡쳐나 비디오등등 파일을 업로드할 때 공통으로 쓸 함수 현재 인자로 multipartfile이 들어가는 이유는 메소드들을 사용하기 위해서
     public String uploadFile(MultipartFile file) {
@@ -105,6 +96,9 @@ public class AwsS3Service {
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
 
+    ///////////////////
+    // help function//
+    /////////////////
     private String createFileName(String fileName) {
         // 먼저 파일 업로드 시, 파일명을 난수화하기 위해 random으로 돌립니다.
         return UUID.randomUUID().toString().concat(getFileExtension(fileName));
