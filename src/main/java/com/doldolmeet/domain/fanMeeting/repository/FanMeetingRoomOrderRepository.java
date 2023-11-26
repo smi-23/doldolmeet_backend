@@ -6,8 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FanMeetingRoomOrderRepository extends JpaRepository<FanMeetingRoomOrder, Long> {
     @Query("select f from FanMeetingRoomOrder f join fetch f.fanMeeting where f.fanMeeting.id = :fanMeetingId")
     List<FanMeetingRoomOrder> findByFanMeetingId(@Param("fanMeetingId") Long fanMeetingId);
+
+    @Query("select f from FanMeetingRoomOrder f join fetch f.fanMeeting where f.fanMeeting.id = :fanMeetingId and f.currentRoom = :currentRoom")
+    Optional<FanMeetingRoomOrder> findByFanMeetingIdAndCurrentRoom(@Param("fanMeetingId") Long fanMeetingId, @Param("currentRoom") String currentRoom);
 }

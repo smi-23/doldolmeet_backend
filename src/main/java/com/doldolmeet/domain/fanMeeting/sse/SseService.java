@@ -35,8 +35,6 @@ public class SseService {
 
     public static Map<Long, Map<String, Session>> Rooms = new ConcurrentHashMap<>();
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     //Emitter 추가
     public SseEmitter createEmitter(Long fanMeetingId, String username) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
@@ -70,12 +68,8 @@ public class SseService {
 
     //waitingRoom에 waiter 추가
     @Transactional
-    public void addwaiter(String eventMessage) {
+    public void addwaiter(String username, Long fanMeetingId, String sessionId) {
         log.info("SseService.addWaiter() called");
-
-        String username = parseUsername(eventMessage);
-        Long fanMeetingId = parseFanMeetingId(eventMessage);
-        String sessionId = parseSessionId(eventMessage);
 
         // fanMeetingId(PK값), 대기방Id(세션ID) 구해서 넣기
         if (waitingRooms.get(fanMeetingId) == null) {
@@ -97,56 +91,9 @@ public class SseService {
         waitingRooms.get(fanMeetingId).get(sessionId).add(new UserNameAndOrderNumber(username, ftfm.get().getOrderNumber()));
     }
 
-    private String parseUsername(String eventMessage) {
-        try {
-            JsonNode jsonNode = objectMapper.readTree(eventMessage);
-            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
-            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
-            String username = jsonNode.get("userName").asText();
-            System.out.println("--------- User Name: " + username);
-
-            return username;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String parseSessionId(String eventMessage) {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        try {
-            JsonNode jsonNode = objectMapper.readTree(eventMessage);
-            String sessionId = jsonNode.get("sessionId").asText();
-            System.out.println("------SessionId: " + sessionId);
-
-            return sessionId;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Long parseFanMeetingId(String eventMessage) {
-
-        try {
-            JsonNode jsonNode = objectMapper.readTree(eventMessage);
-            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
-            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
-            Long fanMeetingId = jsonNode.get("fanMeetingId").asLong();
-            System.out.println("--------- Fan Meeting ID: " + fanMeetingId);
-
-            return fanMeetingId;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     //waitingRoom에 waiter 제거
-    public void removeWaiter(String eventMessage) {
+    public void removeWaiter(String username, Long fanMeetingId, String sessionId) {
         log.info("SseService.removeWaitingRoom() called");
-
-        String username = parseUsername(eventMessage);
-        Long fanMeetingId = parseFanMeetingId(eventMessage);
-        String sessionId = parseSessionId(eventMessage);
 
         SortedSet sortedSet = waitingRooms.get(fanMeetingId).get(sessionId);
 

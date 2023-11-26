@@ -492,4 +492,14 @@ public class OpenviduService {
 
         return new ResponseEntity<>(new Message("팬미팅 전체 방 생성 성공", responseDto), HttpStatus.OK);
     }
+
+    public List<Connection> getConnections(String sessionId) {
+        Session session = openvidu.getActiveSession(sessionId);
+
+        if (session == null) {
+            throw new CustomException(SESSION_NOT_FOUND);
+        }
+
+        return session.getConnections();
+    }
 }

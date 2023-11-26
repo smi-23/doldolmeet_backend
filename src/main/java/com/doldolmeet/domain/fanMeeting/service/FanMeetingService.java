@@ -108,7 +108,7 @@ public class FanMeetingService {
                         .nextRoom("END")
                         .fanMeeting(fanMeeting)
                         .nickname(idols.get(i/2).getUserCommons().getNickname())
-                        .type("teleRoom")
+                        .type("idolRoom")
                         .build();
                 fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(roomOrder.getCurrentRoom());
 
@@ -120,7 +120,7 @@ public class FanMeetingService {
                         .nextRoom(null)
                         .fanMeeting(fanMeeting)
                         .nickname(idols.get(i/2).getUserCommons().getNickname())
-                        .type(i % 2 == 0 ? "waitRoom" : "teleRoom")
+                        .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
                         .build();
 
                 fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(myRoomId);
