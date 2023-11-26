@@ -53,7 +53,9 @@ public class MemoService {
         return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
 
-    // 해당 fan이 작성한 메모 조회
+    // 해당 fan이 작성한 메모 조회기능도 필요하면 구현해야 함
+
+    // 현재 접속 중인 fan의 전체 메모 조회
     @Transactional(readOnly = true)
     public ResponseEntity<List<MemoResponseDto>> getMyMemos(HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
@@ -68,7 +70,7 @@ public class MemoService {
         return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
 
-    // 선택한 메모 조회
+    // 선택한 메모 조회(memo_id를 통해서)
     @Transactional(readOnly = true)
     public ResponseEntity<?> getMemo(Long id) {
         Optional<Memo> optionalMemo = memoRepository.findById(id);
