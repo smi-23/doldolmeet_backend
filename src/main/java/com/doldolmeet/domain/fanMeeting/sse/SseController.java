@@ -1,6 +1,5 @@
 package com.doldolmeet.domain.fanMeeting.sse;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +37,10 @@ public class SseController {
 
         System.out.println("Webhook received!");
         System.out.println(eventMessage);
+
+        if (eventMessage.contains("ADMIN")) {
+            return eventMessage;
+        }
 
         // 참가자가 대기방에 들어왔을 때
         if (eventMessage.contains("participantJoined") & eventMessage.contains("waitingRoom")) {
