@@ -54,7 +54,15 @@ public class SseService {
             throw new RuntimeException(e);
         }
 
-        emitter.onTimeout(() -> emitters.get(fanMeetingId).remove(username));
+        emitter.onCompletion(() -> {
+            log.info("onCompletion callback");
+            emitters.get(fanMeetingId).remove(username);    // 만료되면 리스트에서 삭제
+        });
+
+        emitter.onTimeout(() -> {
+            log.info("onTimeout callback");
+            emitter.complete();
+        });
 
         log.info("SseService.addEmitter() called");
         return emitter;
@@ -71,9 +79,12 @@ public class SseService {
 
         // fanMeetingId(PK값), 대기방Id(세션ID) 구해서 넣기
         if (waitingRooms.get(fanMeetingId) == null) {
+            waitingRooms.put(fanMeetingId, new ConcurrentHashMap<>());
+        }
+
+        if (waitingRooms.get(fanMeetingId).get(sessionId) == null) {
             Comparator comparator = new OrderNumberComparator();
             SortedSet<UserNameAndOrderNumber> sortedSet = new TreeSet(comparator);
-            waitingRooms.put(fanMeetingId, new ConcurrentHashMap<>());
             waitingRooms.get(fanMeetingId).put(sessionId, sortedSet);
         }
 

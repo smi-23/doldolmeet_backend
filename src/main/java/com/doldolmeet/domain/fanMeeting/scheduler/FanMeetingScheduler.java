@@ -6,21 +6,21 @@ import com.doldolmeet.domain.fanMeeting.entity.FanMeetingRoomOrder;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.sse.SseService;
 import com.doldolmeet.domain.fanMeeting.sse.UserNameAndOrderNumber;
-import com.doldolmeet.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
 
 @Controller
 @RequiredArgsConstructor
