@@ -3,15 +3,12 @@ package com.doldolmeet.domain.fanMeeting.sse;
 import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
 import com.doldolmeet.exception.CustomException;
-import com.doldolmeet.utils.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.openvidu.java.client.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,8 +35,10 @@ public class SseService {
 
     public static Map<Long, Map<String, Session>> Rooms = new ConcurrentHashMap<>();
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     //Emitter 추가
-    public ResponseEntity<Message> createEmitter(Long fanMeetingId, String username) {
+    public SseEmitter createEmitter(Long fanMeetingId, String username) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         if (emitters.get(fanMeetingId) == null) {
             emitters.put(fanMeetingId, new ConcurrentHashMap<>());
@@ -58,7 +57,7 @@ public class SseService {
         emitter.onTimeout(() -> emitters.get(fanMeetingId).remove(username));
 
         log.info("SseService.addEmitter() called");
-        return new ResponseEntity<>(new Message("SSE 연결 성공", emitter), HttpStatus.OK);
+        return emitter;
     }
 
     //waitingRoom에 waiter 추가
@@ -74,7 +73,7 @@ public class SseService {
         if (waitingRooms.get(fanMeetingId) == null) {
             Comparator comparator = new OrderNumberComparator();
             SortedSet<UserNameAndOrderNumber> sortedSet = new TreeSet(comparator);
-
+            waitingRooms.put(fanMeetingId, new ConcurrentHashMap<>());
             waitingRooms.get(fanMeetingId).put(sessionId, sortedSet);
         }
 
@@ -87,14 +86,48 @@ public class SseService {
         waitingRooms.get(fanMeetingId).get(sessionId).add(new UserNameAndOrderNumber(username, ftfm.get().getOrderNumber()));
     }
 
+    private String parseUsername(String eventMessage) {
+        try {
+            JsonNode jsonNode = objectMapper.readTree(eventMessage);
+            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
+            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
+            String username = jsonNode.get("userName").asText();
+            System.out.println("--------- User Name: " + username);
+
+            return username;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private String parseSessionId(String eventMessage) {
-        return null;
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            JsonNode jsonNode = objectMapper.readTree(eventMessage);
+            String sessionId = jsonNode.get("sessionId").asText();
+            System.out.println("------SessionId: " + sessionId);
+
+            return sessionId;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Long parseFanMeetingId(String eventMessage) {
-        return null;
-    }
 
+        try {
+            JsonNode jsonNode = objectMapper.readTree(eventMessage);
+            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
+            jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
+            Long fanMeetingId = jsonNode.get("fanMeetingId").asLong();
+            System.out.println("--------- Fan Meeting ID: " + fanMeetingId);
+
+            return fanMeetingId;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     //waitingRoom에 waiter 제거
     public void removeWaiter(String eventMessage) {
@@ -139,23 +172,5 @@ public class SseService {
     public void printemitter() {
         System.out.println("emitter : " + emitters);
         System.out.println("waitingRoom : " + waitingRooms);
-    }
-
-    public String parseUsername(String eventMessage) {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        try {
-            JsonNode jsonNode = objectMapper.readTree(eventMessage);
-            jsonNode = jsonNode.get("clientData");
-
-            String clientDataJsonString = jsonNode.asText();
-            JsonNode clientData = objectMapper.readTree(clientDataJsonString);
-            log.info("clientData : " + clientData);
-
-            String username = clientData.get("clientData").asText();
-            return username;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

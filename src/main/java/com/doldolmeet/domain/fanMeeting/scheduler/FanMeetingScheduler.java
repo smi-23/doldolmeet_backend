@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ public class FanMeetingScheduler {
 //    };
 
     @Scheduled(fixedRate = 60 * 1000) // 매 분마다 실행
+    @Transactional
     public void checkFanMeetingStartTime() throws IOException {
         // 오늘 열려있는 팬미팅들 조회
 
@@ -59,7 +61,7 @@ public class FanMeetingScheduler {
 
 
                     Map<String, SortedSet<UserNameAndOrderNumber>> s = SseService.waitingRooms.get(fanMeeting.getId());
-                    FanMeetingRoomOrder roomOrder = fanMeeting.getFanMeetingRoomOrders().get(0);
+                    FanMeetingRoomOrder roomOrder = fanMeeting.getFanMeetingRoomOrders().get(0); // TODO: NullPointerException
 
                     String mainRoomId = roomOrder.getCurrentRoom();
 

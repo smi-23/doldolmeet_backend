@@ -1,26 +1,15 @@
 package com.doldolmeet.domain.fanMeeting.sse;
 
-import com.doldolmeet.utils.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-//import io.openvidu.basic.java.SseService;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
-import io.openvidu.java.client.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +23,7 @@ public class SseController {
     public final SseService sseService;
 
     @GetMapping(path = "/fanMeetings/{fanMeetingId}/sse/{username}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<Message> createEmitter(@PathVariable Long fanMeetingId, @PathVariable String username) {
+    public SseEmitter createEmitter(@PathVariable Long fanMeetingId, @PathVariable String username) {
         // Add the emitter to a list of subscribers or handle it in another way
         log.info("SseController.subscribe() 호출됨");
         log.info("fanMeetingId: " + fanMeetingId);
