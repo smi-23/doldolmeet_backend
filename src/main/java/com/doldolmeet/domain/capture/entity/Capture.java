@@ -32,6 +32,4 @@ public class Capture extends Timestamped {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_meeting_id")
     private FanMeeting fanMeeting;
-
-
 }
