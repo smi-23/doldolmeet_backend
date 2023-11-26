@@ -73,12 +73,22 @@ public class FanMeetingController {
         return fanMeetingService.getCurrentRoomId(fanMeetingId, request);
     }
 
+    // 팬미팅 조회 API
+    @GetMapping("/fanMeetings/{fanMeetingId}")
+    public ResponseEntity<Message> getFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getFanMeeting(fanMeetingId, request);
+    }
     // 해당 팬미팅의 모든 방ID 반환 API
     @GetMapping("fanMeetings/{fanMeetingId}/roomsId")
     public ResponseEntity<Message> getRoomsId(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.getRoomsId(fanMeetingId, request);
     }
 
+    // fan_to_fan_meeting 조회 API
+    @GetMapping("/fanMeetings/{fanMeetingId}/fanToFanMeeting")
+    public ResponseEntity<Message> getFanToFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getFanToFanMeeting(fanMeetingId, request);
+    }
     // 해당 팬미팅 방 생성되었다고 알려주는 API
     @PostMapping("fanMeetings/{fanMeetingId}/roomCreated")
     public ResponseEntity<Message> roomCreated(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {

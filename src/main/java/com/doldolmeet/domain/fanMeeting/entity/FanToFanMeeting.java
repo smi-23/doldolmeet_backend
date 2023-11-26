@@ -1,5 +1,6 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
+import com.doldolmeet.domain.memo.entity.Memo;
 import com.doldolmeet.domain.users.fan.entity.Fan;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,8 +37,13 @@ public class FanToFanMeeting {
     @Column(nullable = false)
     private Long orderNumber;
 
+    @Column(nullable = false)
+    private String chatRoomId;
+
     public void setUserAndFanMeeting(Fan fan, FanMeeting fanMeeting) {
         this.fan = fan;
         this.fanMeeting = fanMeeting;
     }
+
+
 }
