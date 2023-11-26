@@ -22,10 +22,10 @@ public class AwsS3Controller {
      * Amazon S3에 파일 업로드
      * @return 성공 시 200 Success와 함께 업로드 된 파일의 파일명 리스트 반환
      */
-    @PostMapping("/file/{fanMeetingId}")
-    public ResponseEntity<List<String>> uploadFile(@PathVariable Long fanMeetingId, @RequestPart List<MultipartFile> multipartFile) {
+    @PostMapping("/file/video/{fanMeetingId}")
+    public ResponseEntity<List<String>> uploadFileVideo(@PathVariable Long fanMeetingId, @RequestPart List<MultipartFile> multipartFile) {
         // Upload logic
-        List<String> uploadedFiles = awsS3Service.uploadFile(multipartFile, fanMeetingId);
+        List<String> uploadedFiles = awsS3Service.uploadFileVideo(multipartFile, fanMeetingId);
 
         // Return success response
         return ResponseEntity.ok(uploadedFiles);
@@ -33,9 +33,9 @@ public class AwsS3Controller {
 
     // 팬미팅 만들기 전 이미지 업로드
     @PostMapping("/file")
-    public ResponseEntity<List<String>> uploadFilebeforefanmeeting(@RequestPart List<MultipartFile> multipartFile) {
+    public ResponseEntity<List<String>> uploadFile(@RequestPart List<MultipartFile> multipartFile) {
         // Upload logic
-        List<String> uploadedFiles = awsS3Service.uploadFilebeforefanmeeting(multipartFile);
+        List<String> uploadedFiles = awsS3Service.uploadMultipartFile(multipartFile);
 
         // Return success response
         return ResponseEntity.ok(uploadedFiles);

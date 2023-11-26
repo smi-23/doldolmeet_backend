@@ -38,7 +38,7 @@ public class AwsS3Service {
     private final VideoRepository videoRepository;
     private final FanMeetingRepository fanMeetingRepository;
 
-    public List<String> uploadFile(List<MultipartFile> multipartFile, Long fanMeetingId) {
+    public List<String> uploadFileVideo(List<MultipartFile> multipartFile, Long fanMeetingId) {
         List<String> fileNameList = new ArrayList<>();
 
         // 팬미팅 가져오기
@@ -72,7 +72,24 @@ public class AwsS3Service {
         return fileNameList;
     }
 
-    public List<String> uploadFilebeforefanmeeting(List<MultipartFile> multipartFile) {
+    // 캡쳐나 비디오등등 파일을 업로드할 때 공통으로 쓸 함수 현재 인자로 multipartfile이 들어가는 이유는 메소드들을 사용하기 위해서
+    public String uploadFile(MultipartFile file) {
+        String fileName = createFileName(file.getOriginalFilename());
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(file.getSize());
+        objectMetadata.setContentType(file.getContentType());
+
+        try (InputStream inputStream = file.getInputStream()) {
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
+        }
+
+        return fileName;
+    }
+
+    public List<String> uploadMultipartFile(List<MultipartFile> multipartFile) {
         List<String> fileNameList = new ArrayList<>();
 
         // forEach 구문을 통해 multipartFile로 넘어온 파일들 하나씩 fileNameList에 추가
