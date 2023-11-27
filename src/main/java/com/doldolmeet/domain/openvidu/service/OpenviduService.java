@@ -503,4 +503,15 @@ public class OpenviduService {
 
         return session.getConnections();
     }
+
+    public Session getSession(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+        openvidu.fetch();
+        Session session = openvidu.getActiveSession(sessionId);
+
+        if (session == null) {
+            throw new CustomException(SESSION_NOT_FOUND);
+        }
+
+        return session;
+    }
 }

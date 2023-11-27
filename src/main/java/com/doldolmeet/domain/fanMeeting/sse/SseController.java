@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import static com.doldolmeet.exception.ErrorCode.*;
 
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://youngeui-in-jungle.store/")
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -57,7 +58,11 @@ public class SseController {
         System.out.println("Webhook received!");
         System.out.println(eventMessage);
 
-        if (eventMessage.contains("ADMIN")) {
+        if (eventMessage.contains("sessionCreated")) {
+            return eventMessage;
+        }
+
+        if (eventMessage.contains("ADMIN") || eventMessage.contains("IDOL")) {
             return eventMessage;
         }
 
@@ -66,7 +71,7 @@ public class SseController {
         String sessionId = parseSessionId(eventMessage);
 
         // 참가자가 대기방에 들어왔을 때
-        if (eventMessage.contains("participantJoined") & eventMessage.contains("waitingRoom")) {
+        if (eventMessage.contains("participantJoined") && eventMessage.contains("waitingRoom")) {
             // 현재 방의 fanMeetingRoomOrder
             Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);
             // 없으면 예외
@@ -96,6 +101,7 @@ public class SseController {
                     params.put("currRoomType", currRoomOrder.getType());
 
                     try {
+                        log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
                         SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                         return eventMessage;
                         // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
@@ -109,6 +115,7 @@ public class SseController {
                 // 다음 방 커넥션이 1개면 관리자만 들어와 있는 경우라고 설정
                 else if (connections.size() == 1) {
                     try {
+                        log.info("해당 아이돌 방 커넥션 1개임.");
                         SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("adminOnly").data("adminOnly"));
                         sseService.addwaiter(username, fanMeetingId, sessionId);
                         return eventMessage;
@@ -120,6 +127,7 @@ public class SseController {
                 // 3개면 진행중임
                 else if (connections.size() == 3) {
                     try {
+                        log.info("해당 아이돌 방 커넥션 3개임.");
                         SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("full").data("full"));
                         sseService.addwaiter(username, fanMeetingId, sessionId);
                         return eventMessage;
@@ -130,6 +138,7 @@ public class SseController {
 
                 // 0개거나 4개 이상이면 예외사항
                 else {
+                    log.info("해당 아이돌 방 커넥션 0개거나 4개 이상임.");
                     throw new CustomException(INVALID_IDOLROOM_STATE);
                 }
             }
@@ -147,28 +156,40 @@ public class SseController {
         }
 
         // 참가자가 대기방에서 나갔을 때
-        else if (eventMessage.contains("participantLeft") & eventMessage.contains("waitingRoom")) {
+        else if (eventMessage.contains("participantLeft") && eventMessage.contains("waitingRoom")) {
             sseService.removeWaiter(username, fanMeetingId, sessionId);
         }
 
         // 참가자가 아이돌방에 들어왔을 때
-        else if (eventMessage.contains("participantJoined") & eventMessage.contains("idolRoom")) {
+        else if (eventMessage.contains("participantJoined") && eventMessage.contains("idolRoom")) {
             System.out.println("timer 시작");
             //countdown 시작
-            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-            scheduler.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    System.out.println("10초뒤에 시작");
-//					RoomList.get("idolRoom").forceDisconnect();
-                }
-            }, 10, TimeUnit.SECONDS);
+            // 킥될 때는 바로 대기방B에 들어가는게 좋을듯(그래야 아이돌방A에서 나가는 이벤트가 바로 발생해서, 대기방A에 들어오는 팬과 레이스컨디션 되지 않을듯, 근데 초대 보내졌는데 늦게 클릭하다가 대기방)
+            waitAndKick(eventMessage);
         }
 
-//        // 참가자가 아이돌방에서 나갔을 때
-//        if (eventMessage.contains("participantLeft") & eventMessage.contains("idolRoom")) {
-//            callNextFan();
-//        }
+        // 참가자가 아이돌방에서 나갔을 때
+        if (eventMessage.contains("participantLeft") & eventMessage.contains("idolRoom")) {
+            // 자기 대기방에 있는 팬 중 가장 우선순위 높은 팬에게 쏨
+            // 해당 방을 nextRoomId로 가지는 RoomOrder 조회
+            Optional<FanMeetingRoomOrder> prevFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndNextRoom(fanMeetingId, sessionId);
+            // 없으면 예외
+            if (prevFanMeetingRoomOrderOpt.isEmpty()) {
+                throw new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER);
+            }
+            FanMeetingRoomOrder prevRoomOrder = prevFanMeetingRoomOrderOpt.get();
+
+            String newUsername = SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom()).first().getUsername();
+            try {
+                Map<String, String> params = new HashMap<>();
+                params.put("nextRoomId", prevRoomOrder.getNextRoom());
+                params.put("currRoomType", prevRoomOrder.getType());
+
+                SseService.emitters.get(fanMeetingId).get(newUsername).send(SseEmitter.event().name("moveToIdolRoom").data(params));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         return eventMessage;
     }
@@ -214,6 +235,14 @@ public class SseController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void waitAndKick(String body) {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        // Submit tasks to the thread pool
+        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository));
+        // Shutdown the thread pool when done
+        executorService.shutdown();
     }
 //    private void callNextFan () {
 //        try {
