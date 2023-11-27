@@ -16,26 +16,11 @@ public class AwsS3Controller {
 
     private final AwsS3Service awsS3Service;
 
-    /**
-     * 최적화 시켜야함 지금 코드 개판임
-     * 팬미팅에서 얻은 녹취록이나, 영상이나, 사진을 업로드
-     * Amazon S3에 파일 업로드
-     * @return 성공 시 200 Success와 함께 업로드 된 파일의 파일명 리스트 반환
-     */
-    @PostMapping("/file/{fanMeetingId}")
-    public ResponseEntity<List<String>> uploadFile(@PathVariable Long fanMeetingId, @RequestPart List<MultipartFile> multipartFile) {
-        // Upload logic
-        List<String> uploadedFiles = awsS3Service.uploadFile(multipartFile, fanMeetingId);
-
-        // Return success response
-        return ResponseEntity.ok(uploadedFiles);
-    }
-
-    // 팬미팅 만들기 전 이미지 업로드
+    // 팬미팅 생성 이미지 업로드
     @PostMapping("/file")
-    public ResponseEntity<List<String>> uploadFilebeforefanmeeting(@RequestPart List<MultipartFile> multipartFile) {
+    public ResponseEntity<List<String>> uploadFile(@RequestPart List<MultipartFile> multipartFile) {
         // Upload logic
-        List<String> uploadedFiles = awsS3Service.uploadFilebeforefanmeeting(multipartFile);
+        List<String> uploadedFiles = awsS3Service.uploadMultipartFile(multipartFile);
 
         // Return success response
         return ResponseEntity.ok(uploadedFiles);

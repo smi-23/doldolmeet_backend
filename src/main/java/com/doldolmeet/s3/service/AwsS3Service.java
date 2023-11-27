@@ -3,11 +3,6 @@ package com.doldolmeet.s3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
-import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
-import com.doldolmeet.domain.fanMeeting.service.FanMeetingService;
-import com.doldolmeet.domain.video.entity.Video;
-import com.doldolmeet.domain.video.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -23,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,44 +29,25 @@ public class AwsS3Service {
     private String bucket;
 
     private final AmazonS3 amazonS3;
-    private final VideoRepository videoRepository;
-    private final FanMeetingRepository fanMeetingRepository;
 
-    public List<String> uploadFile(List<MultipartFile> multipartFile, Long fanMeetingId) {
-        List<String> fileNameList = new ArrayList<>();
+    // 캡쳐나 비디오등등 파일을 업로드할 때 공통으로 쓸 함수 현재 인자로 multipartfile이 들어가는 이유는 메소드들을 사용하기 위해서
+    public String uploadFile(MultipartFile file) {
+        String fileName = createFileName(file.getOriginalFilename());
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(file.getSize());
+        objectMetadata.setContentType(file.getContentType());
 
-        // 팬미팅 가져오기
-        FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FanMeeting not found with id: " + fanMeetingId));
+        try (InputStream inputStream = file.getInputStream()) {
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
+        }
 
-        // forEach 구문을 통해 multipartFile로 넘어온 파일들 하나씩 fileNameList에 추가
-        multipartFile.forEach(file -> {
-            String fileName = createFileName(file.getOriginalFilename());
-            ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentLength(file.getSize());
-            objectMetadata.setContentType(file.getContentType());
-
-            try(InputStream inputStream = file.getInputStream()) {
-                amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
-                        .withCannedAcl(CannedAccessControlList.PublicRead));
-            } catch(IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
-            }
-            Video video = Video.builder()
-                    .videoName(file.getOriginalFilename())
-                    .fanMeeting(fanMeeting)
-                    .videoUrl(fileName) // Set the video URL
-                    .build();
-
-            videoRepository.save(video);
-
-            fileNameList.add(fileName);
-        });
-
-        return fileNameList;
+        return fileName;
     }
 
-    public List<String> uploadFilebeforefanmeeting(List<MultipartFile> multipartFile) {
+    public List<String> uploadMultipartFile(List<MultipartFile> multipartFile) {
         List<String> fileNameList = new ArrayList<>();
 
         // forEach 구문을 통해 multipartFile로 넘어온 파일들 하나씩 fileNameList에 추가
@@ -121,6 +96,9 @@ public class AwsS3Service {
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
 
+    ///////////////////
+    // help function//
+    /////////////////
     private String createFileName(String fileName) {
         // 먼저 파일 업로드 시, 파일명을 난수화하기 위해 random으로 돌립니다.
         return UUID.randomUUID().toString().concat(getFileExtension(fileName));

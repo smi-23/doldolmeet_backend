@@ -1,30 +1,33 @@
-package com.doldolmeet.domain.video.entity;
+package com.doldolmeet.domain.capture.entity;
 
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
-import com.doldolmeet.domain.team.entity.Team;
+import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.utils.Timestamped;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-@Entity(name = "videos")
+@Entity(name = "captures")
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Video {
+public class Capture extends Timestamped {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
-    private String videoName;
+    private String captureName;
 
-    @Column(name = "video_url")
-    private String videoUrl;
+    @Column(name = "capture_url")
+    private String captureUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fan_id")
+    private Fan fan;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_meeting_id")
