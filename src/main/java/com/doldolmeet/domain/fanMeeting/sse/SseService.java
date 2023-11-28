@@ -26,8 +26,6 @@ public class SseService {
     // 팬미팅ID, 유저이름, 에미터
     public static Map<Long, Map<String, SseEmitter>> emitters = new ConcurrentHashMap<>();
 
-    // 팬미팅ID, 대기방Id, 대기자들 리스트(username)
-//    public static Map<Long, Map<String, List<String>>> waitingRooms = new ConcurrentHashMap<>();
     public static Map<Long, Map<String, SortedSet<UserNameAndOrderNumber>>> waitingRooms = new ConcurrentHashMap<>();
 
     public static Map<Long, Map<String, Session>> Rooms = new ConcurrentHashMap<>();
@@ -85,8 +83,6 @@ public class SseService {
             throw new CustomException(NOT_FOUND_FANTOFANMEETING);
         }
 
-
-
         waitingRooms.get(fanMeetingId).get(sessionId).add(new UserNameAndOrderNumber(username, ftfm.get().getOrderNumber()));
     }
 
@@ -94,37 +90,17 @@ public class SseService {
     public void removeWaiter(String username, Long fanMeetingId, String sessionId) {
         log.info("SseService.removeWaitingRoom() called");
 
-        SortedSet sortedSet = waitingRooms.get(fanMeetingId).get(sessionId);
+        SortedSet<UserNameAndOrderNumber> watingFans = waitingRooms.get(fanMeetingId).get(sessionId);
 
         // sortedSet에서 해당 user의 UserNameAndOrderNumber를 찾아서 제거
-        if (sortedSet != null) {
-            Iterator iterator = sortedSet.iterator();
-            while (iterator.hasNext()) {
-                UserNameAndOrderNumber userNameAndOrderNumber = (UserNameAndOrderNumber) iterator.next();
+        if (watingFans != null) {
+            for (UserNameAndOrderNumber userNameAndOrderNumber : watingFans) {
                 if (userNameAndOrderNumber.getUsername().equals(username)) {
-                    sortedSet.remove(userNameAndOrderNumber);
+                    watingFans.remove(userNameAndOrderNumber);
                     break;
                 }
             }
         }
-    }
-
-
-
-    public void sendEvents() {
-//        for (SseEmitter emitter : emitters) {
-//            try {
-//                System.out.println("SseService.sendEvents() called");
-//
-//                emitter.send(System.currentTimeMillis());
-//                System.out.println("SseService.sendEvents() called1111");
-//            } catch (IOException e) {
-//                emitter.complete();
-//                System.out.println("SseService.sendEvents() IOException");
-//                emitters.remove(emitter);
-//            }
-//            System.out.println("SseService.sendEvents() called");
-//        }
     }
 
     @Scheduled(initialDelay = 3000, fixedRate = 3000)

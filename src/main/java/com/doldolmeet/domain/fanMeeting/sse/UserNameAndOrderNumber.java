@@ -6,6 +6,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class UserNameAndOrderNumber {
     private String username;
     private Long orderNumber;
