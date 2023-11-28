@@ -6,6 +6,7 @@ import com.doldolmeet.domain.fanMeeting.entity.FanMeetingRoomOrder;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.sse.SseService;
 import com.doldolmeet.domain.fanMeeting.sse.UserNameAndOrderNumber;
+import com.doldolmeet.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,13 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
+
+import static com.doldolmeet.exception.ErrorCode.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -28,17 +29,9 @@ import java.util.SortedSet;
 public class FanMeetingScheduler {
     private final FanMeetingRepository fanMeetingRepository;
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    // 예제를 위해 간단하게 맵에 팬미팅 시작시간과 특정 로직을 설정
-//    private static final Runnable fanMeetingTask = (FanMeeting fanMeeting) -> {
-//        System.out.println("FanMeeting started! Perform specific logic.");
-//        // 여기에 팬미팅에 대한 특정 로직을 추가하세요.
-//    };
-
-    @Scheduled(fixedRate = 10 * 1000) // 매 분마다 실행
+    @Scheduled(fixedRate = 10 * 1000) // 10초마다 실행
     @Transactional
-    public void checkFanMeetingStartTime() throws IOException {
+    public void checkFanMeetingStartTime() {
         // 오늘 열려있는 팬미팅들 조회
 
         LocalDateTime currentTime = LocalDateTime.now();
@@ -60,9 +53,13 @@ public class FanMeetingScheduler {
                     log.info(fanMeeting.getFanMeetingName() + "아직 관리자가 방 생성 안함.");
                 }
 
-                // 관리자가 방 생성한 경우,
-                else {
+                // 관리자가 팬미팅 시작버튼 안 눌렀으면 스케쥴링 안함.
+                else if (!fanMeeting.getIsStarted()) {
+                    log.info(fanMeeting.getFanMeetingName() + "아직 관리자가 팬미팅 시작 안함.");
+                }
 
+                // 관리자가 방 생성하고 시작버튼 누른 경우,
+                else {
                     // 아직 팬이 메인 대기방 안들어왔으면 스케쥴링 안함.
                     if (SseService.waitingRooms.get(fanMeeting.getId()) == null) {
                         log.info(fanMeeting.getFanMeetingName() + "아직 팬이 안 들어와서 대기방 생성도 안됨");
@@ -93,13 +90,14 @@ public class FanMeetingScheduler {
                         // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
 
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        throw new CustomException(SSE_NOT_SENT_FIRST_IDOL_WAIT_ROOM);
                     }
 
                     log.info(fanMeeting.getFanMeetingName() + "스케쥴링 완료");
                 }
-            } else {
-                log.info("FanMeeting start time: " + fanMeeting.getStartTime() + "아직 시작 안함.");
+            }
+            else {
+                log.info("FanMeeting start time: " + fanMeeting.getStartTime() + "아직 시작시간 안됨.");
             }
         }
     }

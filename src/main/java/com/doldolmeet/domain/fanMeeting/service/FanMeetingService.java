@@ -80,6 +80,7 @@ public class FanMeetingService {
                 .teleRooms(new ArrayList<>())
                 .fanMeetingRoomOrders(new ArrayList<>())
                 .isRoomsCreated(false)
+                .isStarted(false)
                 .nextOrder(1L)
                 .chatRoomId(chatRoomId)
                 .build();
@@ -543,40 +544,24 @@ public class FanMeetingService {
 
     }
 
-//    @Transactional
-//    public ResponseEntity<Message> createFanMeetingRooms(Long fanMeetingId, HttpServletRequest request) {
-//        // 어드민인지 체크
-//        claims = jwtUtil.getClaims(request);
-//        userUtils.checkIfAdmin(claims);
-//
-//        FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
-//
-//        // 팬미팅에서 팀을 뽑아낸 후,팀의 아이돌을 뽑아낸 후, FanMeetingRoomOrder 생성
-//        Team team = fanMeeting.getTeam();
-//        List<Idol> idols = team.getIdols();
-//
-//        int sz = idols.size() * 2;
-//
-//        for (int i = 0; i < sz; i++) {
-//            FanMeetingRoomOrder roomOrder;
-//            if (i == sz - 1) {
-//                roomOrder = FanMeetingRoomOrder.builder()
-//                        .currentRoom(UUID.randomUUID().toString())
-//                        .nextRoom("END")
-//                        .fanMeeting(fanMeeting)
-//                        .build();
-//
-//            } else {
-//                roomOrder = FanMeetingRoomOrder.builder()
-//                        .currentRoom(UUID.randomUUID().toString())
-//                        .nextRoom(UUID.randomUUID().toString())
-//                        .fanMeeting(fanMeeting)
-//                        .build();
-//            }
-//
-//            fanMeetingRoomOrderRepository.save(roomOrder);
-//        }
-//
-//        return new ResponseEntity<>(new Message("팬미팅에 대해 각 통화방과 대기방 생성 성공", null), HttpStatus.OK);
-//    }
+    @Transactional
+    public ResponseEntity<Message> startFanMeeting(Long fanMeetingId, HttpServletRequest request) {
+        userUtils.checkIfAdmin(jwtUtil.getClaims(request));
+
+        FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
+        fanMeeting.setIsStarted(true);
+        fanMeetingRepository.save(fanMeeting);
+
+        FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
+                .id(fanMeeting.getId())
+                .imgUrl(fanMeeting.getFanMeetingImgUrl())
+                .title(fanMeeting.getFanMeetingName())
+                .startTime(fanMeeting.getStartTime())
+                .endTime(fanMeeting.getEndTime())
+                .chatRoomId(fanMeeting.getChatRoomId())
+                .teamName(fanMeeting.getTeam().getTeamName())
+                .build();
+
+        return new ResponseEntity<>(new Message("팬미팅 시작 성공", responseDto), HttpStatus.OK);
+    }
 }

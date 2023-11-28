@@ -57,6 +57,9 @@ public class FanMeeting {
     @Column
     private Boolean isRoomsCreated;
 
+    @Column
+    private Boolean isStarted;
+
     // 팬미팅 신청서들
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();
