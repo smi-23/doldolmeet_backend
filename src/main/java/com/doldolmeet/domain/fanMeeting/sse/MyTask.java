@@ -60,7 +60,7 @@ public class MyTask implements Runnable {
             Long fanMeetingId = parseFanMeetingId(body);
             SseEmitter emitter = SseService.emitters.get(fanMeetingId).get(username);
             // 종료 알림을 보내고
-            emitter.send(SseEmitter.event().name("endNotice"));
+            emitter.send(SseEmitter.event().name("endNotice").data(new HashMap<>()));
             Thread.sleep(endNotice);
 
             log.info("-------종료되는 connectionId : " + connectionId);
