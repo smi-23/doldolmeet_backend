@@ -16,8 +16,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.yaml.snakeyaml.emitter.Emitter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import io.openvidu.java.client.OpenVidu;
 
 import static com.doldolmeet.exception.ErrorCode.NOT_FOUND_FANMEETING_ROOM_ORDER;
 
@@ -25,6 +27,7 @@ import static com.doldolmeet.exception.ErrorCode.NOT_FOUND_FANMEETING_ROOM_ORDER
 public class MyTask implements Runnable {
     private String body;
     private OpenviduService openviduService;
+    private OpenVidu openvidu;
 
     private ObjectMapper objectMapper;
     private FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
@@ -48,7 +51,6 @@ public class MyTask implements Runnable {
         }
 
 
-
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode jsonNode = objectMapper.readTree(body);
@@ -59,13 +61,19 @@ public class MyTask implements Runnable {
             String username = parseUsername(body);
             Long fanMeetingId = parseFanMeetingId(body);
             SseEmitter emitter = SseService.emitters.get(fanMeetingId).get(username);
-            // 종료 알림을 보내고
+            // 종료 알림을 보내기
             emitter.send(SseEmitter.event().name("endNotice").data(new HashMap<>()));
             Thread.sleep(endNotice);
 
             log.info("-------종료되는 connectionId : " + connectionId);
             Session session = openviduService.getSession(sessionId);
-//            MyRecordingController.stopRecording();
+
+            // 연결 끊기기전 녹화 종료
+            String recordingId = MyRecordingController.recordingInfo.get(List.of(fanMeetingId, username, sessionId));
+            openvidu.stopRecording(recordingId);
+            MyRecordingController.sessionRecordings.remove(sessionId);
+
+            // 연결 끊기
             session.forceDisconnect(connectionId);
             Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);
             // 없으면 예외

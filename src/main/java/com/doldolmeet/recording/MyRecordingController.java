@@ -31,7 +31,10 @@ public class MyRecordingController {
 	private Map<String, Map<String, OpenViduRole>> mapSessionNamesTokens = new ConcurrentHashMap<>();
 
 	// Collection to pair session names and recording objects
-	private Map<String, Boolean> sessionRecordings = new ConcurrentHashMap<>();
+	public static Map<String, Boolean> sessionRecordings = new ConcurrentHashMap<>();
+
+	public static Map<List<String>, String> recordingInfo = new ConcurrentHashMap<>();
+	;
 
 //	@Value("${OPENVIDU_URL}")
 	private String OPENVIDU_URL = "https://youngeui-in-jungle.store/";
@@ -273,16 +276,21 @@ public class MyRecordingController {
 		Recording.OutputMode outputMode = Recording.OutputMode.valueOf((String) params.get("outputMode"));
 		boolean hasAudio = (boolean) params.get("hasAudio");
 		boolean hasVideo = (boolean) params.get("hasVideo");
+		String fanMeetingId =(String) params.get("fanMeetingId");
+		String fan =(String) params.get("fan");
+		String idol = (String) params.get("idol");
 
 		RecordingProperties properties = new RecordingProperties.Builder().outputMode(outputMode).hasAudio(hasAudio)
 				.hasVideo(hasVideo).build();
 
 		log.info("Starting recording for session " + sessionId + " with properties {outputMode=" + outputMode
 				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "}");
+
 //		onApplicationStart();
 
 		try {
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
+			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
 			this.sessionRecordings.put(sessionId, true);
 			return new ResponseEntity<>(recording, HttpStatus.OK);
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
