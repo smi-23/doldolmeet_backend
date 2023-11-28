@@ -158,6 +158,7 @@ public class FanMeetingService {
                     .imgUrl(fanMeeting.getFanMeetingImgUrl())
                     .title(fanMeeting.getFanMeetingName())
                     .startTime(fanMeeting.getStartTime())
+                    .endTime(fanMeeting.getEndTime())
                     .chatRoomId(fanMeeting.getChatRoomId())
                     .teamName(fanMeeting.getTeam().getTeamName())
                     .build();
@@ -501,6 +502,45 @@ public class FanMeetingService {
 
         fanMeetingRepository.save(fanMeeting);
         return new ResponseEntity<>(new Message("관리자가 방 생성 완료", null), HttpStatus.OK);
+    }
+
+    @Transactional
+    public ResponseEntity<Message> getMyFanMeetings(String option, HttpServletRequest request) {
+        Claims claims = jwtUtil.getClaims(request);
+        String username = claims.getSubject();
+        Fan fan = userUtils.getFan(username);
+
+        List<FanMeetingResponseDto> result = new ArrayList<>();
+        List<FanToFanMeeting> fanToFanMeetings;
+
+        if (option.equals(FanMeetingSearchOption.OPENED.value())) {
+            fanToFanMeetings = fanToFanMeetingRepository.findFanToFanMeetingsByFanByStartTimeAfter(LocalDateTime.now(), fan);
+        }
+        else if (option.equals(FanMeetingSearchOption.CLOSED.value())) {
+            fanToFanMeetings = fanToFanMeetingRepository.findFanToFanMeetingsByFanByEndTimeBefore(LocalDateTime.now(), fan);
+        }
+
+        else {
+            fanToFanMeetings = fanToFanMeetingRepository.findAllByFan(fan);
+        }
+
+        for (FanToFanMeeting fanToFanMeeting : fanToFanMeetings) {
+            FanMeeting fanMeeting = fanToFanMeeting.getFanMeeting();
+            FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
+                    .id(fanMeeting.getId())
+                    .imgUrl(fanMeeting.getFanMeetingImgUrl())
+                    .title(fanMeeting.getFanMeetingName())
+                    .startTime(fanMeeting.getStartTime())
+                    .endTime(fanMeeting.getEndTime())
+                    .chatRoomId(fanMeeting.getChatRoomId())
+                    .teamName(fanMeeting.getTeam().getTeamName())
+                    .build();
+
+            result.add(responseDto);
+        }
+
+        return new ResponseEntity<>(new Message("팬의 팬미팅 조회 성공", result), HttpStatus.OK);
+
     }
 
 //    @Transactional

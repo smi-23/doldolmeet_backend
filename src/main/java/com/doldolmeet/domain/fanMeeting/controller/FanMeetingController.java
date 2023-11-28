@@ -31,6 +31,12 @@ public class FanMeetingController {
         return fanMeetingService.getFanMeetings(option);
     }
 
+    // 팬이 신청했던 팬미팅 중 option에 따라 조회
+    @GetMapping("/fanMeetings/my")
+    public ResponseEntity<Message> getMyFanMeetings(@RequestParam String option, HttpServletRequest request) {
+        return fanMeetingService.getMyFanMeetings(option, request);
+    }
+
     // 해당 팬미팅 신청 API
     @PostMapping("/fanMeetings/{fanMeetingId}")
     public ResponseEntity<Message> applyFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
