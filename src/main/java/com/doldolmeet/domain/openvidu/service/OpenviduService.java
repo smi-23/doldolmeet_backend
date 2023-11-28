@@ -65,7 +65,7 @@ public class OpenviduService {
     @Value("${OPENVIDU_SECRET}")
     private String OPENVIDU_SECRET;
 
-    private OpenVidu openvidu;
+    public OpenVidu openvidu;
 
     @PostConstruct
     public void init() {

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import io.openvidu.java.client.OpenVidu;
 
+
 import static com.doldolmeet.exception.ErrorCode.NOT_FOUND_FANMEETING_ROOM_ORDER;
 
 @Slf4j
@@ -31,11 +32,12 @@ public class MyTask implements Runnable {
 
     private ObjectMapper objectMapper;
     private FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
-    public MyTask(String body, OpenviduService openviduService, ObjectMapper objectMapper, FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository) {
+    public MyTask(String body, OpenviduService openviduService, ObjectMapper objectMapper, FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository, OpenVidu openvidu){
         this.body = body;
         this.openviduService = openviduService;
         this.objectMapper = objectMapper;
         this.fanMeetingRoomOrderRepository = fanMeetingRoomOrderRepository;
+        this.openvidu = openvidu;
     }
 
     @Override

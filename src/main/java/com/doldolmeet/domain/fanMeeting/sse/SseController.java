@@ -240,7 +240,7 @@ public class SseController {
     public void waitAndKick(String body) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         // Submit tasks to the thread pool
-        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository));
+        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openviduService.openvidu));
         // Shutdown the thread pool when done
         executorService.shutdown();
     }
