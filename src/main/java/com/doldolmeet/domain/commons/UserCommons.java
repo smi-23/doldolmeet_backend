@@ -25,4 +25,7 @@ public class UserCommons {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private Role role;
+
+    @Column
+    private String profileImgUrl;
 }

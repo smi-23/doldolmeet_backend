@@ -52,7 +52,7 @@ public class MyTask implements Runnable {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode jsonNode = objectMapper.readTree(body);
-            System.out.println("jsonNode : " + jsonNode);
+            log.info("jsonNode : " + jsonNode);
 
             String sessionId = jsonNode.get("sessionId").asText();
             String connectionId = jsonNode.get("connectionId").asText();
@@ -89,7 +89,7 @@ public class MyTask implements Runnable {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Task " + " is running on thread " + Thread.currentThread().getName());
+        log.info("Task " + " is running on thread " + Thread.currentThread().getName());
 
     }
 
@@ -99,7 +99,7 @@ public class MyTask implements Runnable {
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             Long fanMeetingId = jsonNode.get("fanMeetingId").asLong();
-            System.out.println("--------- Fan Meeting ID: " + fanMeetingId);
+            log.info("--------- Fan Meeting ID: " + fanMeetingId);
 
             return fanMeetingId;
         } catch (JsonProcessingException e) {
@@ -113,7 +113,7 @@ public class MyTask implements Runnable {
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             String username = jsonNode.get("userName").asText();
-            System.out.println("--------- User Name: " + username);
+            log.info("--------- User Name: " + username);
 
             return username;
         } catch (JsonProcessingException e) {

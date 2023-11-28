@@ -129,7 +129,7 @@ public class SseService {
 
     @Scheduled(initialDelay = 3000, fixedRate = 3000)
     public void printemitter() {
-        System.out.println("emitter : " + emitters);
-        System.out.println("waitingRoom : " + waitingRooms);
+        log.info("emitter : " + emitters);
+        log.info("waitingRoom : " + waitingRooms);
     }
 }

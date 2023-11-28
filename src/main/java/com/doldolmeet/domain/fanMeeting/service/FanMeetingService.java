@@ -159,6 +159,7 @@ public class FanMeetingService {
                     .title(fanMeeting.getFanMeetingName())
                     .startTime(fanMeeting.getStartTime())
                     .chatRoomId(fanMeeting.getChatRoomId())
+                    .teamName(fanMeeting.getTeam().getTeamName())
                     .build();
 
             result.add(responseDto);
@@ -203,6 +204,7 @@ public class FanMeetingService {
                 .orderNumber(fanToFanMeeting.getOrderNumber())
                 .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
                 .chatRoomId(chatRoomId)
+                .teamName(fanMeeting.getTeam().getTeamName())
                 .build();
 
         return new ResponseEntity<>(new Message("팬미팅 신청 성공", responseDto), HttpStatus.OK);
@@ -248,6 +250,7 @@ public class FanMeetingService {
                 .startTime(fanMeeting.getStartTime())
                 .endTime(fanMeeting.getEndTime())
                 .chatRoomId(fanMeeting.getChatRoomId())
+                .teamName(fanMeeting.getTeam().getTeamName())
                 .build();
 
         return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);
@@ -428,6 +431,7 @@ public class FanMeetingService {
                 .startTime(fanMeeting.getStartTime())
                 .endTime(fanMeeting.getEndTime())
                 .chatRoomId(fanMeeting.getChatRoomId())
+                .teamName(fanMeeting.getTeam().getTeamName())
                 .build();
 
         return new ResponseEntity<>(new Message("팬미팅 조회 성공", responseDto), HttpStatus.OK);
@@ -469,6 +473,7 @@ public class FanMeetingService {
                 .orderNumber(fanToFanMeeting.getOrderNumber())
                 .fanMeetingApplyStatus(fanToFanMeeting.getFanMeetingApplyStatus())
                 .chatRoomId(fanToFanMeeting.getChatRoomId())
+                .teamName(fanMeeting.getTeam().getTeamName())
                 .build();
 
         return new ResponseEntity<>(new Message("FanToFanMeeting 조회 성공", responseDto), HttpStatus.OK);

@@ -19,4 +19,5 @@ public class FanToFanMeetingResponseDto {
     private FanMeetingApplyStatus fanMeetingApplyStatus;
     private Long orderNumber;
     private String chatRoomId;
+    private String teamName;
 }

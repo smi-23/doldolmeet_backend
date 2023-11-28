@@ -55,10 +55,10 @@ public class SseController {
     @PostMapping("/my_webhook")
     public String webhook(@RequestBody String eventMessage) throws OpenViduJavaClientException, OpenViduHttpException{
 
-        System.out.println("Webhook received!");
-        System.out.println(eventMessage);
+        log.info("Webhook received!");
+        log.info("EVENTMESSAGE:" + eventMessage);
 
-        if (eventMessage.contains("sessionCreated")) {
+        if (eventMessage.contains("sessionCreated") || eventMessage.contains("sessionDestroyed") || eventMessage.contains("webrtcConnectionCreated") || eventMessage.contains("webrtcConnectionDestroyed") || eventMessage.contains("streamCreated") || eventMessage.contains("streamDestroyed")) {
             return eventMessage;
         }
 
@@ -66,7 +66,7 @@ public class SseController {
             return eventMessage;
         }
 
-        String username = parseUsername(eventMessage); // TODO: sessionCreated와 같이 username이 없는 경우 예외처리
+        String username = parseUsername(eventMessage);
         Long fanMeetingId = parseFanMeetingId(eventMessage);
         String sessionId = parseSessionId(eventMessage);
 
@@ -162,14 +162,14 @@ public class SseController {
 
         // 참가자가 아이돌방에 들어왔을 때
         else if (eventMessage.contains("participantJoined") && eventMessage.contains("idolRoom")) {
-            System.out.println("timer 시작");
+            log.info("timer 시작");
             //countdown 시작
             // 킥될 때는 바로 대기방B에 들어가는게 좋을듯(그래야 아이돌방A에서 나가는 이벤트가 바로 발생해서, 대기방A에 들어오는 팬과 레이스컨디션 되지 않을듯, 근데 초대 보내졌는데 늦게 클릭하다가 대기방)
             waitAndKick(eventMessage);
         }
 
         // 참가자가 아이돌방에서 나갔을 때
-        if (eventMessage.contains("participantLeft") & eventMessage.contains("idolRoom")) {
+        else if (eventMessage.contains("participantLeft") & eventMessage.contains("idolRoom")) {
             // 자기 대기방에 있는 팬 중 가장 우선순위 높은 팬에게 쏨
             // 해당 방을 nextRoomId로 가지는 RoomOrder 조회
             Optional<FanMeetingRoomOrder> prevFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndNextRoom(fanMeetingId, sessionId);
@@ -200,7 +200,7 @@ public class SseController {
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             String username = jsonNode.get("userName").asText();
-            System.out.println("--------- User Name: " + username);
+            log.info("--------- User Name: " + username);
 
             return username;
         } catch (JsonProcessingException e) {
@@ -214,7 +214,7 @@ public class SseController {
         try {
             JsonNode jsonNode = objectMapper.readTree(eventMessage);
             String sessionId = jsonNode.get("sessionId").asText();
-            System.out.println("------SessionId: " + sessionId);
+            log.info("------SessionId: " + sessionId);
 
             return sessionId;
         } catch (JsonProcessingException e) {
@@ -229,7 +229,7 @@ public class SseController {
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             jsonNode = objectMapper.readTree(jsonNode.get("clientData").asText());
             Long fanMeetingId = jsonNode.get("fanMeetingId").asLong();
-            System.out.println("--------- Fan Meeting ID: " + fanMeetingId);
+            log.info("--------- Fan Meeting ID: " + fanMeetingId);
 
             return fanMeetingId;
         } catch (JsonProcessingException e) {
@@ -244,13 +244,4 @@ public class SseController {
         // Shutdown the thread pool when done
         executorService.shutdown();
     }
-//    private void callNextFan () {
-//        try {
-//            Long nextfan = Collections.min(SseService.waitingRoom);
-//            System.out.println("nextfan : " + nextfan);
-//            SseService.emitters.get(nextfan).send("karina");
-//        } catch (Exception e) {
-//            System.out.println("waitingRoom is empty");
-//        }
-//    }
 }
