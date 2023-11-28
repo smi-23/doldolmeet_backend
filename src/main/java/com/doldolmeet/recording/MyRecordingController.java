@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequestMapping("/recording-java/api")
-public class MyRestController {
+public class MyRecordingController {
 
 	// OpenVidu object as entrypoint of the SDK
 	private OpenVidu openVidu;
@@ -39,7 +39,7 @@ public class MyRestController {
 //	@Value("${OPENVIDU_SECRET}")
 	private String OPENVIDU_SECRET = "MY_SECRET";
 
-	public MyRestController() {
+	public MyRecordingController() {
 		this.openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 	}
 

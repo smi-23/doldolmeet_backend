@@ -4,6 +4,7 @@ import com.doldolmeet.domain.fanMeeting.entity.FanMeetingRoomOrder;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRoomOrderRepository;
 import com.doldolmeet.domain.openvidu.service.OpenviduService;
 import com.doldolmeet.exception.CustomException;
+import com.doldolmeet.recording.MyRecordingController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +13,7 @@ import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.Session;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
+import org.yaml.snakeyaml.emitter.Emitter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +37,12 @@ public class MyTask implements Runnable {
 
     @Override
     public void run() {
+        long timeLimit = 11000;
+        long endNotice = 4000;
+
         try {
-            Thread.sleep(10000);
+            Thread.sleep(timeLimit - endNotice);
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -53,9 +58,14 @@ public class MyTask implements Runnable {
             String connectionId = jsonNode.get("connectionId").asText();
             String username = parseUsername(body);
             Long fanMeetingId = parseFanMeetingId(body);
+            SseEmitter emitter = SseService.emitters.get(fanMeetingId).get(username);
+            // 종료 알림을 보내고
+            emitter.send(SseEmitter.event().name("endNotice"));
+            Thread.sleep(endNotice);
 
             log.info("-------종료되는 connectionId : " + connectionId);
             Session session = openviduService.getSession(sessionId);
+//            MyRecordingController.stopRecording();
             session.forceDisconnect(connectionId);
             Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);
             // 없으면 예외
@@ -67,8 +77,7 @@ public class MyTask implements Runnable {
             Map<String, String> params = new HashMap<>();
             params.put("nextRoomId", currRoomOrder.getNextRoom());
             params.put("currRoomType", currRoomOrder.getType());
-
-            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToWaitRoom").data(params));
+            emitter.send(SseEmitter.event().name("moveToWaitRoom").data(params));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } catch (OpenViduJavaClientException e) {
@@ -76,6 +85,8 @@ public class MyTask implements Runnable {
         } catch (OpenViduHttpException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         System.out.println("Task " + " is running on thread " + Thread.currentThread().getName());
