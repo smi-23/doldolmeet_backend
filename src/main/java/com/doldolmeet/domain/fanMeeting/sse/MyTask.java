@@ -28,10 +28,10 @@ import static com.doldolmeet.exception.ErrorCode.NOT_FOUND_FANMEETING_ROOM_ORDER
 public class MyTask implements Runnable {
     private String body;
     private OpenviduService openviduService;
-    private OpenVidu openvidu;
 
     private ObjectMapper objectMapper;
     private FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
+    private OpenVidu openvidu;
     public MyTask(String body, OpenviduService openviduService, ObjectMapper objectMapper, FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository, OpenVidu openvidu){
         this.body = body;
         this.openviduService = openviduService;
@@ -72,7 +72,7 @@ public class MyTask implements Runnable {
 
             // 연결 끊기기전 녹화 종료
             String recordingId = MyRecordingController.recordingInfo.get(List.of(fanMeetingId, username, sessionId));
-            openvidu.stopRecording(recordingId);
+            this.openvidu.stopRecording(recordingId);
             MyRecordingController.sessionRecordings.remove(sessionId);
 
             // 연결 끊기
