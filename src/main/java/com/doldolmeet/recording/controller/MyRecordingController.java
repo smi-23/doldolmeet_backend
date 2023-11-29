@@ -1,9 +1,13 @@
-package com.doldolmeet.recording;
+package com.doldolmeet.recording.controller;
 
+import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
+import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
+import com.doldolmeet.recording.service.RecordingInfoService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.openvidu.java.client.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequestMapping("/recording-java/api")
+@RequiredArgsConstructor
 public class MyRecordingController {
 
 	// OpenVidu object as entrypoint of the SDK
-	private OpenVidu openVidu;
-
+	private OpenVidu openVidu = new OpenVidu("https://youngeui-in-jungle.store/", "MY_SECRET");;
+	private final RecordingInfoService recordingInfoService;
 	// Collection to pair session names and OpenVidu Session objects
 	private Map<String, Session> mapSessions = new ConcurrentHashMap<>();
 
@@ -40,14 +45,14 @@ public class MyRecordingController {
 	;
 
 //	@Value("${OPENVIDU_URL}")
-	private String OPENVIDU_URL = "https://youngeui-in-jungle.store/";
+//	private String OPENVIDU_URL = "https://youngeui-in-jungle.store/";
+//
+////	@Value("${OPENVIDU_SECRET}")
+//	private String OPENVIDU_SECRET = "MY_SECRET";
 
-//	@Value("${OPENVIDU_SECRET}")
-	private String OPENVIDU_SECRET = "MY_SECRET";
-
-	public MyRecordingController() {
-		this.openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
-	}
+//	public MyRecordingController() {
+//		this.openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
+//	}
 
 	/*******************/
 	/*** Session API ***/
@@ -279,10 +284,10 @@ public class MyRecordingController {
 		Recording.OutputMode outputMode = Recording.OutputMode.valueOf((String) params.get("outputMode"));
 		boolean hasAudio = (boolean) params.get("hasAudio");
 		boolean hasVideo = (boolean) params.get("hasVideo");
-		String fanMeetingId =(String) params.get("fanMeetingId");
+		Long fanMeetingId =(Long) params.get("fanMeetingId");
 		String fan =(String) params.get("fan");
 		String idol = (String) params.get("idol");
-
+		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@1" );
 		RecordingProperties properties = new RecordingProperties.Builder().outputMode(outputMode).hasAudio(hasAudio)
 				.hasVideo(hasVideo).build();
 
@@ -293,6 +298,10 @@ public class MyRecordingController {
 
 		try {
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
+			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2" );
+			// recordingInfo entity에 저장
+			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, recording.getUrl());
+			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@3" );
 			HashMap<String, String> sessionIdMap = new HashMap<>();
 			sessionIdMap.put("sessionId", sessionId);
 //			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
