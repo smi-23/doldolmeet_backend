@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,8 +33,10 @@ public class MyRecordingController {
 
 	// Collection to pair session names and recording objects
 	public static Map<String, Boolean> sessionRecordings = new ConcurrentHashMap<>();
+	public static Map<String, Recording> sessionIdRecordingsMap = new ConcurrentHashMap<>();
 
-	public static Map<List<String>, String> recordingInfo = new ConcurrentHashMap<>();
+//	public static Map<List<String>, String> recordingInfo = new ConcurrentHashMap<>();
+	public static Map<String, Map<String, String>> recordingInfo = new ConcurrentHashMap<>();
 	;
 
 //	@Value("${OPENVIDU_URL}")
@@ -290,8 +293,12 @@ public class MyRecordingController {
 
 		try {
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
-			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
+			HashMap<String, String> sessionIdMap = new HashMap<>();
+			sessionIdMap.put("sessionId", sessionId);
+//			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
 			this.sessionRecordings.put(sessionId, true);
+			this.sessionIdRecordingsMap.put(sessionId, recording);
+
 			return new ResponseEntity<>(recording, HttpStatus.OK);
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
