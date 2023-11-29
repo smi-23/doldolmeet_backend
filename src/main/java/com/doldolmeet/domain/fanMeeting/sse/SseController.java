@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.openvidu.java.client.Connection;
+import io.openvidu.java.client.OpenVidu;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,8 @@ public class SseController {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
     private final OpenviduService openviduService;
+    private OpenVidu openvidu = new OpenVidu("https://youngeui-in-jungle.store/", "MY_SECRET");
+
 
     @GetMapping(path = "/fanMeetings/{fanMeetingId}/sse/{username}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter createEmitter(@PathVariable Long fanMeetingId, @PathVariable String username) {
@@ -240,7 +243,10 @@ public class SseController {
     public void waitAndKick(String body) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         // Submit tasks to the thread pool
-        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openviduService.openvidu));
+        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        System.out.println(openvidu);
+        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openvidu));
         // Shutdown the thread pool when done
         executorService.shutdown();
     }
