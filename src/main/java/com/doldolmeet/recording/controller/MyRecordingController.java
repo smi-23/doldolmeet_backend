@@ -284,7 +284,9 @@ public class MyRecordingController {
 		Recording.OutputMode outputMode = Recording.OutputMode.valueOf((String) params.get("outputMode"));
 		boolean hasAudio = (boolean) params.get("hasAudio");
 		boolean hasVideo = (boolean) params.get("hasVideo");
-		Long fanMeetingId =(Long) params.get("fanMeetingId");
+		log.info("fanMeetingId: " + params.get("fanMeetingId").toString());
+		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0" );
 		String fan =(String) params.get("fan");
 		String idol = (String) params.get("idol");
 		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@1" );
@@ -292,13 +294,15 @@ public class MyRecordingController {
 				.hasVideo(hasVideo).build();
 
 		log.info("Starting recording for session " + sessionId + " with properties {outputMode=" + outputMode
-				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "}");
+				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "fan=" + fan + "idol=" + idol);
 
 //		onApplicationStart();
 
 		try {
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
 			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2" );
+			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2 recording" );
+			System.out.println(recording.getUrl());
 			// recordingInfo entity에 저장
 			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, recording.getUrl());
 			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@3" );
