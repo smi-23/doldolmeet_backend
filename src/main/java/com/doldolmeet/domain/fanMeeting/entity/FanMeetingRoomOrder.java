@@ -27,6 +27,9 @@ public class FanMeetingRoomOrder {
     @Column
     private String type;
 
+    @Column
+    private String roomThumbnail;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_meeting_id", nullable = false)
     private FanMeeting fanMeeting;

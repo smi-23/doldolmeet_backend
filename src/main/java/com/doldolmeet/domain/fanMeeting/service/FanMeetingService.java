@@ -109,6 +109,7 @@ public class FanMeetingService {
                         .nextRoom("END")
                         .fanMeeting(fanMeeting)
                         .nickname(idols.get(i/2).getUserCommons().getNickname())
+                        .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
                         .type("idolRoom")
                         .build();
                 fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(roomOrder.getCurrentRoom());
@@ -121,6 +122,7 @@ public class FanMeetingService {
                         .nextRoom(null)
                         .fanMeeting(fanMeeting)
                         .nickname(idols.get(i/2).getUserCommons().getNickname())
+                        .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
                         .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
                         .build();
 
