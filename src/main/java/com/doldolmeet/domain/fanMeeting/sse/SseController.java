@@ -102,6 +102,7 @@ public class SseController {
                     Map<String, String> params = new HashMap<>();
                     params.put("nextRoomId", currRoomOrder.getNextRoom());
                     params.put("currRoomType", currRoomOrder.getType());
+                    params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
 
                     try {
                         log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
@@ -187,6 +188,7 @@ public class SseController {
                 Map<String, String> params = new HashMap<>();
                 params.put("nextRoomId", prevRoomOrder.getNextRoom());
                 params.put("currRoomType", prevRoomOrder.getType());
+                params.put("roomThumbnail", prevRoomOrder.getRoomThumbnail());
 
                 SseService.emitters.get(fanMeetingId).get(newUsername).send(SseEmitter.event().name("moveToIdolRoom").data(params));
             } catch (IOException e) {
