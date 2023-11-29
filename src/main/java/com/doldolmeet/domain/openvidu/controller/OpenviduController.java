@@ -58,7 +58,7 @@ public class OpenviduController {
     }
 
     // 팬미팅 입장버튼 API(팬, 아이돌 로직 분기처리됨)
-    @GetMapping("fanMeetings/{fanMeetingId}/session")
+    @GetMapping("/fanMeetings/{fanMeetingId}/session")
     public ResponseEntity<Message> enterFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return openviduService.enterFanMeeting(fanMeetingId, request);
     }
@@ -81,19 +81,19 @@ public class OpenviduController {
     }
 
     //대기방에 들어온 팬을 저장하는 API
-    @PostMapping("username/{username}/waitRoomId/{waitRoomId}/fanMeetingId/{fanMeetingId}/saveFanWaiting")
+    @PostMapping("/username/{username}/waitRoomId/{waitRoomId}/fanMeetingId/{fanMeetingId}/saveFanWaiting")
     public ResponseEntity<Message> saveFanWaiting(@PathVariable String waitRoomId, @PathVariable Long fanMeetingId, @PathVariable String username) throws OpenViduJavaClientException, OpenViduHttpException {
         return openviduService.saveFanWaiting(waitRoomId, fanMeetingId, username);
     }
 
     //화상방에 들어온 팬을 저장하는 API
-    @PostMapping("username/{username}/teleRoomId/{teleRoomId}/fanMeetingId/{fanMeetingId}/saveFanTeleing")
+    @PostMapping("/username/{username}/teleRoomId/{teleRoomId}/fanMeetingId/{fanMeetingId}/saveFanTeleing")
     public ResponseEntity<Message> saveFanTeleing(@PathVariable String teleRoomId, @PathVariable Long fanMeetingId, @PathVariable String username) throws OpenViduJavaClientException, OpenViduHttpException {
         return openviduService.saveFanTeleing(teleRoomId, fanMeetingId, username);
     }
 
     // TeleRoomFan과 WaitRoomFan을 찾아서 커넥션Id와 커넥션토큰을 저장해야 한다.
-    @PostMapping("updateConnection")
+    @PostMapping("/updateConnection")
     public ResponseEntity<Message> updateConnection(@RequestBody ConnUpdateRequestDto requestDto, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return openviduService.updateConnection(requestDto, request);
     }
