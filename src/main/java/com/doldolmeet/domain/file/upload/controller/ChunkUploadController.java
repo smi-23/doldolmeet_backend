@@ -4,6 +4,7 @@ package com.doldolmeet.domain.file.upload.controller;
  *파일을 로컬 저장소 storage에 업로드 합니다.
  */
 import com.doldolmeet.domain.file.upload.service.ChunkUploadService;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.io.IOException;
 
 @Controller
 @RequiredArgsConstructor
+@ApiResponse
 public class ChunkUploadController {
 
     private final ChunkUploadService chunkUploadService;

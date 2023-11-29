@@ -5,6 +5,9 @@ import com.doldolmeet.domain.fanMeeting.service.FanMeetingService;
 import com.doldolmeet.utils.Message;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@ApiResponse
 public class FanMeetingController {
     private final FanMeetingService fanMeetingService;
 
@@ -101,6 +105,7 @@ public class FanMeetingController {
         return fanMeetingService.roomCreated(fanMeetingId, request);
     }
 
+    @Operation(summary = "팬미팅 시작", description = "팬미팅 시작")
     // 관리자가 팬미팅 시작하는 API
     @PostMapping("/fanMeetings/{fanMeetingId}/start")
     public ResponseEntity<Message> startFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {

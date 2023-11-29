@@ -6,6 +6,7 @@ import java.util.Map;
 import com.doldolmeet.domain.openvidu.dto.request.ConnUpdateRequestDto;
 import com.doldolmeet.domain.openvidu.service.OpenviduService;
 import com.doldolmeet.utils.Message;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.PostConstruct;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,7 @@ import io.openvidu.java.client.SessionProperties;
 //@CrossOrigin(origins = "*")
 @RestController
 @RequiredArgsConstructor
+@ApiResponse
 public class OpenviduController {
     private final OpenviduService openviduService;
 

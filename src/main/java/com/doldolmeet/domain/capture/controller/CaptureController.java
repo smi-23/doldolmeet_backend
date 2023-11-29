@@ -2,6 +2,7 @@ package com.doldolmeet.domain.capture.controller;
 
 import com.doldolmeet.domain.capture.service.CaptureService;
 import com.doldolmeet.utils.Message;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/captures")
+@ApiResponse
 public class CaptureController {
     private final CaptureService captureService;
 

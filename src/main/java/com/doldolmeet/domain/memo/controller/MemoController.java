@@ -4,6 +4,7 @@ import com.doldolmeet.domain.memo.dto.MemoRequestDto;
 import com.doldolmeet.domain.memo.dto.MemoResponseDto;
 import com.doldolmeet.domain.memo.service.MemoService;
 import com.doldolmeet.utils.Message;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@ApiResponse
 public class MemoController {
     private final MemoService memoService;
 

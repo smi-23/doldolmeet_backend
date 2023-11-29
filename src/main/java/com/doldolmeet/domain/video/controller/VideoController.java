@@ -4,6 +4,7 @@ import com.doldolmeet.domain.video.dto.VideoDto;
 import com.doldolmeet.domain.video.service.VideoService;
 import com.doldolmeet.s3.service.AwsS3Service;
 import com.doldolmeet.utils.Message;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/videos")
+@ApiResponse
 public class VideoController {
 
     private final VideoService videoService;
