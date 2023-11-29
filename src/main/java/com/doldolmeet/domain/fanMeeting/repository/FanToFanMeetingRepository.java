@@ -28,4 +28,7 @@ public interface FanToFanMeetingRepository extends JpaRepository<FanToFanMeeting
 
     @Query("select f from FanToFanMeeting f where f.fan = :fan order by f.fanMeeting.startTime asc")
     List<FanToFanMeeting> findAllByFan(Fan fan);
+
+    @Query("select f from FanToFanMeeting f where f.fanMeeting.startTime <= :now and f.fanMeeting.endTime > :now and f.fan = :fan order by f.fanMeeting.startTime asc")
+    List<FanToFanMeeting> findFanToFanMeetingsByFanByStartTimeBeforeAndEndTimeAfter(LocalDateTime now, Fan fan);
 }

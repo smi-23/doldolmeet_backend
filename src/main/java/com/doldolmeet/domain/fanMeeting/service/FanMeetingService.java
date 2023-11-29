@@ -506,6 +506,15 @@ public class FanMeetingService {
     }
 
     @Transactional
+    public ResponseEntity<Message> roomDeleted(Long fanMeetingId, HttpServletRequest request) {
+        FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
+        fanMeeting.setIsRoomsCreated(false);
+
+        fanMeetingRepository.save(fanMeeting);
+        return new ResponseEntity<>(new Message("관리자가 방 삭제 완료", null), HttpStatus.OK);
+    }
+
+    @Transactional
     public ResponseEntity<Message> getMyFanMeetings(String option, HttpServletRequest request) {
         Claims claims = jwtUtil.getClaims(request);
         String username = claims.getSubject();
@@ -520,6 +529,9 @@ public class FanMeetingService {
         else if (option.equals(FanMeetingSearchOption.CLOSED.value())) {
             fanToFanMeetings = fanToFanMeetingRepository.findFanToFanMeetingsByFanByEndTimeBefore(LocalDateTime.now(), fan);
         }
+        else if (option.equals(FanMeetingSearchOption.PROGRESS.value())) {
+            fanToFanMeetings = fanToFanMeetingRepository.findFanToFanMeetingsByFanByStartTimeBeforeAndEndTimeAfter(LocalDateTime.now(), fan);
+        }
 
         else {
             fanToFanMeetings = fanToFanMeetingRepository.findAllByFan(fan);
@@ -527,6 +539,18 @@ public class FanMeetingService {
 
         for (FanToFanMeeting fanToFanMeeting : fanToFanMeetings) {
             FanMeeting fanMeeting = fanToFanMeeting.getFanMeeting();
+
+            FanMeetingSearchOption status;
+
+            if (fanMeeting.getStartTime().isAfter(LocalDateTime.now())) {
+                status = FanMeetingSearchOption.OPENED;
+            }
+            else if (fanMeeting.getEndTime().isBefore(LocalDateTime.now())) {
+                status = FanMeetingSearchOption.CLOSED;
+            }
+            else {
+                status = FanMeetingSearchOption.PROGRESS;
+            }
             FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
                     .id(fanMeeting.getId())
                     .imgUrl(fanMeeting.getFanMeetingImgUrl())
@@ -535,6 +559,7 @@ public class FanMeetingService {
                     .endTime(fanMeeting.getEndTime())
                     .chatRoomId(fanMeeting.getChatRoomId())
                     .teamName(fanMeeting.getTeam().getTeamName())
+                    .fanMeetingStatus(status)
                     .build();
 
             result.add(responseDto);
@@ -546,10 +571,27 @@ public class FanMeetingService {
 
     @Transactional
     public ResponseEntity<Message> startFanMeeting(Long fanMeetingId, HttpServletRequest request) {
-        userUtils.checkIfAdmin(jwtUtil.getClaims(request));
-
         FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
         fanMeeting.setIsStarted(true);
+        fanMeetingRepository.save(fanMeeting);
+
+        FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
+                .id(fanMeeting.getId())
+                .imgUrl(fanMeeting.getFanMeetingImgUrl())
+                .title(fanMeeting.getFanMeetingName())
+                .startTime(fanMeeting.getStartTime())
+                .endTime(fanMeeting.getEndTime())
+                .chatRoomId(fanMeeting.getChatRoomId())
+                .teamName(fanMeeting.getTeam().getTeamName())
+                .build();
+
+        return new ResponseEntity<>(new Message("팬미팅 시작 성공", responseDto), HttpStatus.OK);
+    }
+
+
+    public ResponseEntity<Message> closeFanMeeting(Long fanMeetingId, HttpServletRequest request) {
+        FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
+        fanMeeting.setIsStarted(false);
         fanMeetingRepository.save(fanMeeting);
 
         FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()

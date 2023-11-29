@@ -105,10 +105,22 @@ public class FanMeetingController {
         return fanMeetingService.roomCreated(fanMeetingId, request);
     }
 
+    // 해당 팬미팅 방 삭제되었다고 알려주는 API
+    @PostMapping("fanMeetings/{fanMeetingId}/roomDeleted")
+    public ResponseEntity<Message> roomDeleted(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.roomDeleted(fanMeetingId, request);
+    }
+
     @Operation(summary = "팬미팅 시작", description = "팬미팅 시작")
     // 관리자가 팬미팅 시작하는 API
     @PostMapping("/fanMeetings/{fanMeetingId}/start")
     public ResponseEntity<Message> startFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.startFanMeeting(fanMeetingId, request);
+    }
+
+    // 관리자가 팬미팅 종료하는 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/close")
+    public ResponseEntity<Message> closeFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.closeFanMeeting(fanMeetingId, request);
     }
 }
