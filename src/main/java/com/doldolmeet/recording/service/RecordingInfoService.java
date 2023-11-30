@@ -34,13 +34,6 @@ public class RecordingInfoService {
     @Transactional
     public void saveRecordingInfo(Long fanMeetingId, String fanUserName, String idolKinckname, String fileName, String recordingId  ) {
 
-        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        System.out.println("fanMeetingId : " + fanMeetingId);
-        System.out.println("fanUserName : " + fanUserName);
-        System.out.println("idolKinckname : " + idolKinckname);
-        System.out.println("fileName : " + idolKinckname);
-
-        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
         FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).get();
         Fan fan = fanRepository.findByUserCommonsUsername(fanUserName).get();
