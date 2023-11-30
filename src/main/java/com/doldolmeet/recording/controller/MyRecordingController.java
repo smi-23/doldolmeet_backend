@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import io.openvidu.java.client.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MyRecordingController {
 
 	// OpenVidu object as entrypoint of the SDK
-	private OpenVidu openVidu = new OpenVidu("https://youngeui-in-jungle.store/", "MY_SECRET");;
+
+	@Value("${OPENVIDU_URL}")
+	private String OPENVIDU_URL;
+
+	@Value("${OPENVIDU_SECRET}")
+	private String OPENVIDU_SECRET;
+
+	private OpenVidu openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 	private final RecordingInfoService recordingInfoService;
 	// Collection to pair session names and OpenVidu Session objects
 	private Map<String, Session> mapSessions = new ConcurrentHashMap<>();
@@ -44,15 +52,6 @@ public class MyRecordingController {
 	public static Map<String, Map<String, String>> recordingInfo = new ConcurrentHashMap<>();
 	;
 
-//	@Value("${OPENVIDU_URL}")
-//	private String OPENVIDU_URL = "https://youngeui-in-jungle.store/";
-//
-////	@Value("${OPENVIDU_SECRET}")
-//	private String OPENVIDU_SECRET = "MY_SECRET";
-
-//	public MyRecordingController() {
-//		this.openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
-//	}
 
 	/*******************/
 	/*** Session API ***/
@@ -287,8 +286,8 @@ public class MyRecordingController {
 		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
 		String fan =(String) params.get("fan");
 		String fileName = (String) params.get("name");
-//		String idol = (String) params.get("idol");
-		String idol = "karina";
+		String idol = (String) params.get("idol");
+
 		RecordingProperties properties = new RecordingProperties.Builder().outputMode(outputMode).hasAudio(hasAudio)
 				.hasVideo(hasVideo).name(fileName).build();
 
