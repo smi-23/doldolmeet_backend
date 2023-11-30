@@ -29,13 +29,7 @@ public class MyRecordingController {
 
 	// OpenVidu object as entrypoint of the SDK
 
-	@Value("${OPENVIDU_URL}")
-	private String OPENVIDU_URL;
-
-	@Value("${OPENVIDU_SECRET}")
-	private String OPENVIDU_SECRET;
-
-	private OpenVidu openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
+	private OpenVidu openvidu = new OpenVidu("https://youngeui-in-jungle.store/", "MY_SECRET");
 	private final RecordingInfoService recordingInfoService;
 	// Collection to pair session names and OpenVidu Session objects
 	private Map<String, Session> mapSessions = new ConcurrentHashMap<>();
