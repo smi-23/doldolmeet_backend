@@ -1,10 +1,15 @@
-package com.doldolmeet.recording;
+package com.doldolmeet.recording.controller;
 
+import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
+import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
+import com.doldolmeet.recording.service.RecordingInfoService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.openvidu.java.client.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -19,11 +24,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequestMapping("/recording-java/api")
+@RequiredArgsConstructor
 public class MyRecordingController {
 
 	// OpenVidu object as entrypoint of the SDK
-	private OpenVidu openVidu;
 
+	@Value("${OPENVIDU_URL}")
+	private String OPENVIDU_URL;
+
+	@Value("${OPENVIDU_SECRET}")
+	private String OPENVIDU_SECRET;
+
+	private OpenVidu openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
+	private final RecordingInfoService recordingInfoService;
 	// Collection to pair session names and OpenVidu Session objects
 	private Map<String, Session> mapSessions = new ConcurrentHashMap<>();
 
@@ -39,15 +52,6 @@ public class MyRecordingController {
 	public static Map<String, Map<String, String>> recordingInfo = new ConcurrentHashMap<>();
 	;
 
-//	@Value("${OPENVIDU_URL}")
-	private String OPENVIDU_URL = "https://youngeui-in-jungle.store/";
-
-//	@Value("${OPENVIDU_SECRET}")
-	private String OPENVIDU_SECRET = "MY_SECRET";
-
-	public MyRecordingController() {
-		this.openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
-	}
 
 	/*******************/
 	/*** Session API ***/
@@ -279,26 +283,29 @@ public class MyRecordingController {
 		Recording.OutputMode outputMode = Recording.OutputMode.valueOf((String) params.get("outputMode"));
 		boolean hasAudio = (boolean) params.get("hasAudio");
 		boolean hasVideo = (boolean) params.get("hasVideo");
-		String fanMeetingId =(String) params.get("fanMeetingId");
+		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
 		String fan =(String) params.get("fan");
+		String fileName = (String) params.get("name");
 		String idol = (String) params.get("idol");
 
 		RecordingProperties properties = new RecordingProperties.Builder().outputMode(outputMode).hasAudio(hasAudio)
-				.hasVideo(hasVideo).build();
+				.hasVideo(hasVideo).name(fileName).build();
 
 		log.info("Starting recording for session " + sessionId + " with properties {outputMode=" + outputMode
-				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "}");
+				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "fan=" + fan + "idol=" + idol, "fileName=" + fileName + "}"	);
 
 //		onApplicationStart();
 
 		try {
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
+			System.out.println(recording);
 			HashMap<String, String> sessionIdMap = new HashMap<>();
 			sessionIdMap.put("sessionId", sessionId);
 //			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
 			this.sessionRecordings.put(sessionId, true);
 			this.sessionIdRecordingsMap.put(sessionId, recording);
-
+			// recordingInfo entity에 저장
+			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, fileName, recording.getId());
 			return new ResponseEntity<>(recording, HttpStatus.OK);
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -318,7 +325,26 @@ public class MyRecordingController {
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
+
 	}
+
+	@RequestMapping(value = "/recording/get", method = RequestMethod.GET)
+	public ResponseEntity<?> getRecording(@RequestBody Map<String, Object> params) {
+		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		String fan =(String) params.get("fan");
+//		String idol = (String) params.get("idol");
+		String idol = "karina";
+
+		try {
+			String recordingId = recordingInfoService.findRecordingId(fanMeetingId, fan, idol);
+			Recording recording = this.openVidu.getRecording(recordingId);
+			return new ResponseEntity<>(recording, HttpStatus.OK);
+		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+
 
 	@RequestMapping(value = "/recording/delete", method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteRecording(@RequestBody Map<String, Object> params) {
@@ -334,18 +360,20 @@ public class MyRecordingController {
 		}
 	}
 
-	@RequestMapping(value = "/recording/get/{recordingId}", method = RequestMethod.GET)
-	public ResponseEntity<?> getRecording(@PathVariable(value = "recordingId") String recordingId) {
 
-		log.info("Getting recording | {recordingId}=" + recordingId);
 
-		try {
-			Recording recording = this.openVidu.getRecording(recordingId);
-			return new ResponseEntity<>(recording, HttpStatus.OK);
-		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-		}
-	}
+//	@RequestMapping(value = "/recording/get/{recordingId}", method = RequestMethod.GET)
+//	public ResponseEntity<?> getRecording(@PathVariable(value = "recordingId") String recordingId) {
+//
+//		log.info("Getting recording | {recordingId}=" + recordingId);
+//
+//		try {
+//			Recording recording = this.openVidu.getRecording(recordingId);
+//			return new ResponseEntity<>(recording, HttpStatus.OK);
+//		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+//			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+//		}
+//	}
 
 	@RequestMapping(value = "/recording/list", method = RequestMethod.GET)
 	public ResponseEntity<?> listRecordings() {

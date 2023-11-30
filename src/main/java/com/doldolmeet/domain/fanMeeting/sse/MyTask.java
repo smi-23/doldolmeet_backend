@@ -4,7 +4,7 @@ import com.doldolmeet.domain.fanMeeting.entity.FanMeetingRoomOrder;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRoomOrderRepository;
 import com.doldolmeet.domain.openvidu.service.OpenviduService;
 import com.doldolmeet.exception.CustomException;
-import com.doldolmeet.recording.MyRecordingController;
+import com.doldolmeet.recording.controller.MyRecordingController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,10 +13,9 @@ import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.Session;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.yaml.snakeyaml.emitter.Emitter;
+
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import io.openvidu.java.client.OpenVidu;
@@ -74,11 +73,8 @@ public class MyTask implements Runnable {
 //            String recordingId = MyRecordingController.recordingInfo.get(List.of(fanMeetingId, username, sessionId));
 //            String recordingId = MyRecordingController.sessionRecordings.get();
             String recordingId = MyRecordingController.sessionIdRecordingsMap.get(sessionId).getId();
-            log.info("@@@@@@@@@@@@@@@@@@@@@recordingId : " + recordingId);
             this.openvidu.stopRecording(recordingId);
-            log.info("@@@@@@@@@@@@@@@@@@@@@recordingIdremove : " + recordingId);
             MyRecordingController.sessionRecordings.remove(sessionId);
-            log.info("@@@@@@@@@@@@@@@@@@@@@forceDisconnect : " + recordingId);
             // 연결 끊기
             session.forceDisconnect(connectionId);
             Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);

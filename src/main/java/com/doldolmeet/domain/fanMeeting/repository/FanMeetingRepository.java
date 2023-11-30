@@ -30,4 +30,5 @@ public interface FanMeetingRepository extends JpaRepository<FanMeeting, Long> {
     @Query("SELECT f FROM FanMeeting f WHERE f.team = :team AND f.startTime >= :midNightTime AND f.endTime > :currentTime AND f.startTime < :tomorrowMidnightTime ORDER BY f.endTime ASC LIMIT 1")
     Optional<FanMeeting> findFanMeetingsByTeamOne(@Param("team") Team team, @Param("midNightTime") LocalDateTime midNightTime, @Param("currentTime") LocalDateTime currentTime, @Param("tomorrowMidnightTime") LocalDateTime tomorrowMidnightTime);
 
+    Optional<FanMeeting> findById(Long id);
 }
