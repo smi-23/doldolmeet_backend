@@ -300,12 +300,12 @@ public class MyRecordingController {
 		try {
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
 			System.out.println(recording);
-			// recordingInfo entity에 저장
 			HashMap<String, String> sessionIdMap = new HashMap<>();
 			sessionIdMap.put("sessionId", sessionId);
 //			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
 			this.sessionRecordings.put(sessionId, true);
 			this.sessionIdRecordingsMap.put(sessionId, recording);
+			// recordingInfo entity에 저장
 			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, fileName, recording.getId());
 			return new ResponseEntity<>(recording, HttpStatus.OK);
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
