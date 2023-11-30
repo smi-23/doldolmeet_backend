@@ -41,8 +41,8 @@ public class MyTask implements Runnable {
 
     @Override
     public void run() {
-        long timeLimit = 11000;
-        long endNotice = 4000;
+        long timeLimit = 30000;
+        long endNotice = 10000;
 
         try {
             Thread.sleep(timeLimit - endNotice);

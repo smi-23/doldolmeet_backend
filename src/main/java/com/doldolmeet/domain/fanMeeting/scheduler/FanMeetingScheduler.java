@@ -45,7 +45,7 @@ public class FanMeetingScheduler {
         // 오늘 열리는 팬미팅들 순회.
         for (FanMeeting fanMeeting : fanMeetings) {
             // 시작해야 하는 팬미팅들 순회.
-            if (fanMeeting.getStartTime().isBefore(currentTime)) {
+//            if (fanMeeting.getStartTime().isBefore(currentTime)) {
                 log.info("FanMeeting start time: " + fanMeeting.getStartTime());
 
                 // 관리자가 방 생성하지 않았으면 스케쥴링 안함.
@@ -95,10 +95,10 @@ public class FanMeetingScheduler {
 
                     log.info(fanMeeting.getFanMeetingName() + "스케쥴링 완료");
                 }
-            }
-            else {
-                log.info("FanMeeting start time: " + fanMeeting.getStartTime() + "아직 시작시간 안됨.");
-            }
+//            }
+//            else {
+//                log.info("FanMeeting start time: " + fanMeeting.getStartTime() + "아직 시작시간 안됨.");
+//            }
         }
     }
 }
