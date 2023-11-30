@@ -287,8 +287,8 @@ public class MyRecordingController {
 		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
 		String fan =(String) params.get("fan");
 		String fileName = (String) params.get("name");
-//		String idol = (String) params.get("idol");
-		String idol = "karina";
+		String idol = (String) params.get("idol");
+
 		RecordingProperties properties = new RecordingProperties.Builder().outputMode(outputMode).hasAudio(hasAudio)
 				.hasVideo(hasVideo).name(fileName).build();
 
@@ -333,8 +333,8 @@ public class MyRecordingController {
 	public ResponseEntity<?> getRecording(@RequestBody Map<String, Object> params) {
 		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
 		String fan =(String) params.get("fan");
-//		String idol = (String) params.get("idol");
-		String idol = "karina";
+		String idol = (String) params.get("idol");
+
 
 		try {
 			String recordingId = recordingInfoService.findRecordingId(fanMeetingId, fan, idol);
