@@ -284,34 +284,29 @@ public class MyRecordingController {
 		Recording.OutputMode outputMode = Recording.OutputMode.valueOf((String) params.get("outputMode"));
 		boolean hasAudio = (boolean) params.get("hasAudio");
 		boolean hasVideo = (boolean) params.get("hasVideo");
-		log.info("fanMeetingId: " + params.get("fanMeetingId").toString());
 		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
-		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0" );
 		String fan =(String) params.get("fan");
-		String idol = (String) params.get("idol");
-		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@1" );
+		String fileName = (String) params.get("name");
+//		String idol = (String) params.get("idol");
+		String idol = "karina";
 		RecordingProperties properties = new RecordingProperties.Builder().outputMode(outputMode).hasAudio(hasAudio)
-				.hasVideo(hasVideo).build();
+				.hasVideo(hasVideo).name(fileName).build();
 
 		log.info("Starting recording for session " + sessionId + " with properties {outputMode=" + outputMode
-				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "fan=" + fan + "idol=" + idol);
+				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "fan=" + fan + "idol=" + idol, "fileName=" + fileName + "}"	);
 
 //		onApplicationStart();
 
 		try {
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
-			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2" );
-			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2 recording" );
-			System.out.println(recording.getUrl());
+			System.out.println(recording);
 			// recordingInfo entity에 저장
-			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, recording.getUrl());
-			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@3" );
 			HashMap<String, String> sessionIdMap = new HashMap<>();
 			sessionIdMap.put("sessionId", sessionId);
 //			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
 			this.sessionRecordings.put(sessionId, true);
 			this.sessionIdRecordingsMap.put(sessionId, recording);
-
+			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, fileName, recording.getId());
 			return new ResponseEntity<>(recording, HttpStatus.OK);
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -331,7 +326,26 @@ public class MyRecordingController {
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
+
 	}
+
+	@RequestMapping(value = "/recording/get", method = RequestMethod.GET)
+	public ResponseEntity<?> getRecording(@RequestBody Map<String, Object> params) {
+		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		String fan =(String) params.get("fan");
+//		String idol = (String) params.get("idol");
+		String idol = "karina";
+
+		try {
+			String recordingId = recordingInfoService.findRecordingId(fanMeetingId, fan, idol);
+			Recording recording = this.openVidu.getRecording(recordingId);
+			return new ResponseEntity<>(recording, HttpStatus.OK);
+		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+
 
 	@RequestMapping(value = "/recording/delete", method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteRecording(@RequestBody Map<String, Object> params) {
@@ -347,18 +361,20 @@ public class MyRecordingController {
 		}
 	}
 
-	@RequestMapping(value = "/recording/get/{recordingId}", method = RequestMethod.GET)
-	public ResponseEntity<?> getRecording(@PathVariable(value = "recordingId") String recordingId) {
 
-		log.info("Getting recording | {recordingId}=" + recordingId);
 
-		try {
-			Recording recording = this.openVidu.getRecording(recordingId);
-			return new ResponseEntity<>(recording, HttpStatus.OK);
-		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-		}
-	}
+//	@RequestMapping(value = "/recording/get/{recordingId}", method = RequestMethod.GET)
+//	public ResponseEntity<?> getRecording(@PathVariable(value = "recordingId") String recordingId) {
+//
+//		log.info("Getting recording | {recordingId}=" + recordingId);
+//
+//		try {
+//			Recording recording = this.openVidu.getRecording(recordingId);
+//			return new ResponseEntity<>(recording, HttpStatus.OK);
+//		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+//			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+//		}
+//	}
 
 	@RequestMapping(value = "/recording/list", method = RequestMethod.GET)
 	public ResponseEntity<?> listRecordings() {

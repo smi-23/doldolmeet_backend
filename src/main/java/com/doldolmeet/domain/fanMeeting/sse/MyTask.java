@@ -73,11 +73,8 @@ public class MyTask implements Runnable {
 //            String recordingId = MyRecordingController.recordingInfo.get(List.of(fanMeetingId, username, sessionId));
 //            String recordingId = MyRecordingController.sessionRecordings.get();
             String recordingId = MyRecordingController.sessionIdRecordingsMap.get(sessionId).getId();
-            log.info("@@@@@@@@@@@@@@@@@@@@@recordingId : " + recordingId);
             this.openvidu.stopRecording(recordingId);
-            log.info("@@@@@@@@@@@@@@@@@@@@@recordingIdremove : " + recordingId);
             MyRecordingController.sessionRecordings.remove(sessionId);
-            log.info("@@@@@@@@@@@@@@@@@@@@@forceDisconnect : " + recordingId);
             // 연결 끊기
             session.forceDisconnect(connectionId);
             Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);
