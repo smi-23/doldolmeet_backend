@@ -1,5 +1,6 @@
 package com.doldolmeet.domain.users.idol.entity;
 
+import com.doldolmeet.domain.capture.entity.Capture;
 import com.doldolmeet.domain.commons.Role;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.commons.UserCommons;
@@ -33,6 +34,9 @@ public class Idol {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
+
+    @OneToMany(mappedBy = "idol", cascade = CascadeType.ALL)
+    private List<Capture> captures = new ArrayList<>();
 
     private String teleRoomId;
     private String waitRoomId;

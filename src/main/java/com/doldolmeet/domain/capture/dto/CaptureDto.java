@@ -13,6 +13,7 @@ public class CaptureDto {
     private Long captureId;
     private String captureName;
     private Long fanMeetingId;
+    private Long idolId;
     private String captureUrl;
     private Long fanId;
 }

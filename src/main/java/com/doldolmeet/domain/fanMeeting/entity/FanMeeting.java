@@ -1,5 +1,6 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
+import com.doldolmeet.domain.capture.entity.Capture;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
@@ -54,6 +55,12 @@ public class FanMeeting {
     @Column
     private String chatRoomId;
 
+    @Column
+    private Boolean isRoomsCreated;
+
+    @Column
+    private Boolean isStarted;
+
     // 팬미팅 신청서들
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanToFanMeeting> fanToFanMeetings = new ArrayList<>();
@@ -69,4 +76,6 @@ public class FanMeeting {
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<Video> videos = new ArrayList<>();
 
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<Capture> captures = new ArrayList<>();
 }
