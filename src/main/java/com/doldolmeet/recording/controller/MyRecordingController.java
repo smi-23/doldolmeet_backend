@@ -29,14 +29,8 @@ public class MyRecordingController {
 
 	// OpenVidu object as entrypoint of the SDK
 
-	@Value("${OPENVIDU_URL}")
-	private String OPENVIDU_URL;
-
-	@Value("${OPENVIDU_SECRET}")
-	private String OPENVIDU_SECRET;
-
-	private OpenVidu openVidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 	private final RecordingInfoService recordingInfoService;
+	private OpenVidu openVidu = new OpenVidu("https://youngeui-in-jungle.store/", "MY_SECRET");
 	// Collection to pair session names and OpenVidu Session objects
 	private Map<String, Session> mapSessions = new ConcurrentHashMap<>();
 
@@ -332,8 +326,8 @@ public class MyRecordingController {
 	public ResponseEntity<?> getRecording(@RequestBody Map<String, Object> params) {
 		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
 		String fan =(String) params.get("fan");
-//		String idol = (String) params.get("idol");
-		String idol = "karina";
+		String idol = (String) params.get("idol");
+
 
 		try {
 			String recordingId = recordingInfoService.findRecordingId(fanMeetingId, fan, idol);
