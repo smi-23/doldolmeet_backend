@@ -1,7 +1,4 @@
 package com.doldolmeet.utils;
-
-import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
-import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.teleRoom.repository.TeleRoomRepository;
 import com.doldolmeet.domain.users.admin.entity.Admin;
@@ -30,8 +27,6 @@ public class UserUtils {
     private final FanRepository fanRepository;
     private final IdolRepository idolRepository;
     private final WaitRoomRepository waitRoomRepository;
-    private final FanToFanMeetingRepository fanToFanMeetingRepository;
-    private final FanMeetingRepository fanMeetingRepository;
     private final TeleRoomRepository teleRoomRepository;
 
     public void checkIfUserExist(Claims claims) {
@@ -75,6 +70,16 @@ public class UserUtils {
 
         return idol.get();
 
+    }
+
+    public Admin getAdmin(String username) {
+        Optional<Admin> admin = adminRepository.findByUserCommonsUsername(username);
+
+        if (!admin.isPresent()) {
+            throw new CustomException(NOT_USER);
+        }
+
+        return admin.get();
     }
 
 

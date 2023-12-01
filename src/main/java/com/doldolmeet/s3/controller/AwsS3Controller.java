@@ -1,6 +1,7 @@
 package com.doldolmeet.s3.controller;
 
 import com.doldolmeet.s3.service.AwsS3Service;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/s3")
+@ApiResponse
 public class AwsS3Controller {
 
     private final AwsS3Service awsS3Service;

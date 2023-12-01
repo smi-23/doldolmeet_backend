@@ -47,6 +47,7 @@ public class GuestService {
         UserCommons userCommons = UserCommons.builder()
                 .username(username)
                 .password(password)
+                .nickname(requestDto.getNickname())
                 .role(requestDto.getRole())
                 .build();
 
@@ -62,7 +63,6 @@ public class GuestService {
         else if (requestDto.getRole().equals(Role.IDOL)) {
             Idol idol = Idol.builder()
                             .userCommons(userCommons)
-                            .stageName(requestDto.getStageName())
                             .build();
 
             Optional<Team> team = teamRepository.findByTeamName(requestDto.getTeamName());
@@ -130,7 +130,7 @@ public class GuestService {
                 throw new CustomException(INVALID_PASSWORD);
             }
 
-            jwtToken = jwtUtil.createToken(username, fan.get().getUserCommons().getRole());
+            jwtToken = jwtUtil.createToken(username, fan.get().getUserCommons().getRole(), fan.get().getUserCommons().getNickname());
         }
 
         else if (idol.isPresent()) {
@@ -138,7 +138,7 @@ public class GuestService {
                 throw new CustomException(INVALID_PASSWORD);
             }
 
-            jwtToken = jwtUtil.createToken(username, idol.get().getUserCommons().getRole());
+            jwtToken = jwtUtil.createToken(username, idol.get().getUserCommons().getRole(), idol.get().getUserCommons().getNickname());
         }
 
         else if (admin.isPresent()) {
@@ -146,7 +146,7 @@ public class GuestService {
                 throw new CustomException(INVALID_PASSWORD);
             }
 
-            jwtToken = jwtUtil.createToken(username, admin.get().getUserCommons().getRole());
+            jwtToken = jwtUtil.createToken(username, admin.get().getUserCommons().getRole(), admin.get().getUserCommons().getNickname());
         }
 
         else {

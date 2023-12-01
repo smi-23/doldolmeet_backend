@@ -1,7 +1,7 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
 public enum FanMeetingSearchOption {
-    ALL("all"), CLOSED("closed"), OPENED("opened");
+    ALL("all"), CLOSED("closed"), OPENED("opened"), PROGRESS("progress");
 
     String value;
     FanMeetingSearchOption(String value) {

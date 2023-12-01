@@ -5,6 +5,9 @@ import com.doldolmeet.domain.fanMeeting.service.FanMeetingService;
 import com.doldolmeet.utils.Message;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@ApiResponse
 public class FanMeetingController {
     private final FanMeetingService fanMeetingService;
 
@@ -29,6 +33,12 @@ public class FanMeetingController {
     @ResponseBody
     public ResponseEntity<Message> getFanMeetings(@RequestParam String option) {
         return fanMeetingService.getFanMeetings(option);
+    }
+
+    // 팬이 신청했던 팬미팅 중 option에 따라 조회
+    @GetMapping("/fanMeetings/my")
+    public ResponseEntity<Message> getMyFanMeetings(@RequestParam String option, HttpServletRequest request) {
+        return fanMeetingService.getMyFanMeetings(option, request);
     }
 
     // 해당 팬미팅 신청 API
@@ -56,19 +66,19 @@ public class FanMeetingController {
     }
 
     // 아이돌 입장에서 다음에 들어올 팬 데이터 가져오는 API
-    @GetMapping("fanMeetings/{fanMeetingId}/nextFan")
+    @GetMapping("/fanMeetings/{fanMeetingId}/nextFan")
     public ResponseEntity<Message> getNextFan(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.getNextFan(fanMeetingId, request);
     }
 
     // 아이돌 입장에서 자기 방에 있는 팬 다음 방으로 가라는 API
-    @GetMapping("fanMeetings/{fanMeetingId}/nextWaitRoom")
+    @GetMapping("/fanMeetings/{fanMeetingId}/nextWaitRoom")
     public ResponseEntity<Message> getNextWaitRoomId(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.getNextWaitRoomId(fanMeetingId, request);
     }
 
     // 현재 자신이 위치한 방의 sessionId 반환 API
-    @GetMapping("fanMeetings/{fanMeetingId}/currentRoom")
+    @GetMapping("/fanMeetings/{fanMeetingId}/currentRoom")
     public ResponseEntity<Message> getCurrentRoomId(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.getCurrentRoomId(fanMeetingId, request);
     }
@@ -78,10 +88,39 @@ public class FanMeetingController {
     public ResponseEntity<Message> getFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
         return fanMeetingService.getFanMeeting(fanMeetingId, request);
     }
+    // 해당 팬미팅의 모든 방ID 반환 API
+    @GetMapping("/fanMeetings/{fanMeetingId}/roomsId")
+    public ResponseEntity<Message> getRoomsId(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.getRoomsId(fanMeetingId, request);
+    }
 
     // fan_to_fan_meeting 조회 API
     @GetMapping("/fanMeetings/{fanMeetingId}/fanToFanMeeting")
     public ResponseEntity<Message> getFanToFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) {
         return fanMeetingService.getFanToFanMeeting(fanMeetingId, request);
+    }
+    // 해당 팬미팅 방 생성되었다고 알려주는 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/roomCreated")
+    public ResponseEntity<Message> roomCreated(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.roomCreated(fanMeetingId, request);
+    }
+
+    // 해당 팬미팅 방 삭제되었다고 알려주는 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/roomDeleted")
+    public ResponseEntity<Message> roomDeleted(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.roomDeleted(fanMeetingId, request);
+    }
+
+    @Operation(summary = "팬미팅 시작", description = "팬미팅 시작")
+    // 관리자가 팬미팅 시작하는 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/start")
+    public ResponseEntity<Message> startFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.startFanMeeting(fanMeetingId, request);
+    }
+
+    // 관리자가 팬미팅 종료하는 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/close")
+    public ResponseEntity<Message> closeFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
+        return fanMeetingService.closeFanMeeting(fanMeetingId, request);
     }
 }

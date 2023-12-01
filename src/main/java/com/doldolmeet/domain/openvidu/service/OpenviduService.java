@@ -2,10 +2,14 @@ package com.doldolmeet.domain.openvidu.service;
 
 import com.doldolmeet.domain.commons.Role;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
+import com.doldolmeet.domain.fanMeeting.entity.FanMeetingRoomOrder;
 import com.doldolmeet.domain.fanMeeting.entity.FanToFanMeeting;
+import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRoomOrderRepository;
 import com.doldolmeet.domain.fanMeeting.repository.FanToFanMeetingRepository;
+import com.doldolmeet.domain.fanMeeting.sse.SseService;
 import com.doldolmeet.domain.openvidu.dto.request.ConnUpdateRequestDto;
 import com.doldolmeet.domain.openvidu.dto.response.EnterResponseDto;
+import com.doldolmeet.domain.openvidu.dto.response.FanMeetingRoomsResponseDto;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoomFan;
@@ -34,9 +38,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.doldolmeet.exception.ErrorCode.*;
 
@@ -53,6 +56,7 @@ public class OpenviduService {
     private final WaitRoomFanRepository waitRoomFanRepository;
     private final FanToFanMeetingRepository fanToFanMeetingRepository;
     private final TeleRoomFanRepository teleRoomFanRepository;
+    private final FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
 
     private Claims claims;
     @Value("${OPENVIDU_URL}")
@@ -61,17 +65,22 @@ public class OpenviduService {
     @Value("${OPENVIDU_SECRET}")
     private String OPENVIDU_SECRET;
 
-    private OpenVidu openvidu;
-
+    public OpenVidu openvidu;
 
     @PostConstruct
     public void init() {
         this.openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
     }
 
-    public ResponseEntity<String> initializeSession(Map<String, Object> params) throws OpenViduJavaClientException, OpenViduHttpException {
+    public ResponseEntity<String> initializeSession(Map<String, Object> params, Long fanMeetingId) throws OpenViduJavaClientException, OpenViduHttpException {
         SessionProperties properties = SessionProperties.fromJson(params).build();
         Session session = openvidu.createSession(properties);
+
+        if (SseService.Rooms.get(fanMeetingId) == null) {
+            SseService.Rooms.put(fanMeetingId, new ConcurrentHashMap<>());
+        }
+        SseService.Rooms.get(fanMeetingId).put(session.getSessionId(), session);
+
         return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
     }
 
@@ -457,5 +466,52 @@ public class OpenviduService {
         else {
             throw new CustomException(UNKNOWN_TYPE);
         }
+    }
+
+    @Transactional
+    public ResponseEntity<Message> createFanMeetingRooms(Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException{
+        // 어드민인지 체크
+        claims = jwtUtil.getClaims(request);
+        userUtils.checkIfAdmin(claims);
+
+        // 팬미팅을 통해서 팬미팅 룸 오더 받아오기
+        List<FanMeetingRoomOrder> roomOrders = fanMeetingRoomOrderRepository.findByFanMeetingId(fanMeetingId);
+        FanMeetingRoomsResponseDto responseDto = new FanMeetingRoomsResponseDto();
+
+        for (FanMeetingRoomOrder roomOrder : roomOrders) {
+            String roomId = roomOrder.getCurrentRoom();
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("customSessionId", roomId);
+
+
+            initializeSession(params, fanMeetingId);
+            createConnection(roomId, new HashMap<>());
+            responseDto.getRoomIds().add(roomId);
+        }
+
+        return new ResponseEntity<>(new Message("팬미팅 전체 방 생성 성공", responseDto), HttpStatus.OK);
+    }
+
+    public List<Connection> getConnections(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+        openvidu.fetch();
+        Session session = openvidu.getActiveSession(sessionId);
+
+        if (session == null) {
+            throw new CustomException(SESSION_NOT_FOUND);
+        }
+
+        return session.getConnections();
+    }
+
+    public Session getSession(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+        openvidu.fetch();
+        Session session = openvidu.getActiveSession(sessionId);
+
+        if (session == null) {
+            throw new CustomException(SESSION_NOT_FOUND);
+        }
+
+        return session;
     }
 }

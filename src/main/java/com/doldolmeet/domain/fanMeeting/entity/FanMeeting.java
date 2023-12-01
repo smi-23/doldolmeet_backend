@@ -78,4 +78,7 @@ public class FanMeeting {
 
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<Capture> captures = new ArrayList<>();
+  
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<FanMeetingRoomOrder> fanMeetingRoomOrders = new ArrayList<>();
 }

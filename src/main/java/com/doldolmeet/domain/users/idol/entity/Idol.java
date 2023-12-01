@@ -28,9 +28,6 @@ public class Idol {
     @Embedded
     private UserCommons userCommons;
 
-    @Column(nullable = false)
-    private String stageName;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
@@ -58,9 +55,5 @@ public class Idol {
         this.userCommons.setUsername(username);
         this.userCommons.setPassword(password);
         this.userCommons.setRole(role);
-    }
-
-    public void setStageName(String stageName) {
-        this.stageName = stageName;
     }
 }

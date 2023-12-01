@@ -56,7 +56,13 @@ public enum ErrorCode {
     TELE_ROOMFAN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 화상방에 TeleRoomFan이 없습니다."),
     FAN_NOT_IN_ROOM(HttpStatus.NOT_FOUND, "해당 팬미팅에 팬이 없습니다."),
     TELEROOMFAN_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "해당 화상방에 이미 같은 팬이 존재합니다."),
-    UNKNOWN_TYPE(HttpStatus.BAD_REQUEST, "알 수 없는 타입입니다.");
+    UNKNOWN_TYPE(HttpStatus.BAD_REQUEST, "알 수 없는 타입입니다."),
+    NOT_FOUND_FANTOFANMEETING(HttpStatus.NOT_FOUND, "해당 팬미팅을 신청하지 않은 팬입니다."),
+    NOT_FOUND_FANMEETING_ROOM_ORDER(HttpStatus.NOT_FOUND, "해당 세션ID를 가지는 방이 존재하지 않습니다."),
+    INVALID_IDOLROOM_STATE(HttpStatus.BAD_REQUEST, "아이돌 방의 상태가 유효하지 않습니다."),
+    SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 세션을 찾을 수 없습니다."),
+    INVALID_FANMEETING_END(HttpStatus.BAD_REQUEST, "대기방의 다음 방이 없습니다."),
+    SSE_NOT_SENT_FIRST_IDOL_WAIT_ROOM(HttpStatus.INTERNAL_SERVER_ERROR, "첫번째 아이돌 대기방으로 이동하는 SSE 이벤트를 보내지 못했습니다.");
 
     private final HttpStatus httpStatus;
     private final String data;

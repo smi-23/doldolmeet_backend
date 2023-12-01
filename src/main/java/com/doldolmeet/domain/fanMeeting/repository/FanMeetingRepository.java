@@ -22,8 +22,13 @@ public interface FanMeetingRepository extends JpaRepository<FanMeeting, Long> {
     @Query("SELECT ftfm.fanMeeting FROM FanToFanMeeting ftfm WHERE ftfm.fan = :fan AND ftfm.fanMeeting.startTime >= :midNightTime AND ftfm.fanMeeting.endTime > :currentTime AND ftfm.fanMeeting.startTime < :tomorrowMidnightTime ORDER BY ftfm.fanMeeting.endTime ASC LIMIT 1")
     Optional<FanMeeting> findFanMeetingsByFan(@Param("fan") Fan fan, @Param("midNightTime") LocalDateTime midNightTime, @Param("currentTime") LocalDateTime currentTime, @Param("tomorrowMidnightTime") LocalDateTime tomorrowMidnightTime);
 
+
+    @Query("SELECT f FROM FanMeeting f WHERE f.startTime >= :midNightTime AND f.startTime < :tomorrowMidnightTime ORDER BY f.startTime ASC")
+    List<FanMeeting> findTodayFanMeetings(@Param("midNightTime") LocalDateTime midNightTime, @Param("tomorrowMidnightTime") LocalDateTime tomorrowMidnightTime);
+
     // 아이돌을 전달해서 팀을 찾고, 팀을 통해 팬미팅들을 조회하는데, 오늘 열리는 팬미팅 중 하나 뽑기
     @Query("SELECT f FROM FanMeeting f WHERE f.team = :team AND f.startTime >= :midNightTime AND f.endTime > :currentTime AND f.startTime < :tomorrowMidnightTime ORDER BY f.endTime ASC LIMIT 1")
     Optional<FanMeeting> findFanMeetingsByTeamOne(@Param("team") Team team, @Param("midNightTime") LocalDateTime midNightTime, @Param("currentTime") LocalDateTime currentTime, @Param("tomorrowMidnightTime") LocalDateTime tomorrowMidnightTime);
 
+    Optional<FanMeeting> findById(Long id);
 }
