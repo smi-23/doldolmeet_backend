@@ -63,7 +63,7 @@ public class SseController {
         log.info("Webhook received!");
         log.info("EVENTMESSAGE:" + eventMessage);
 
-        if (eventMessage.contains("sessionCreated") || eventMessage.contains("sessionDestroyed") || eventMessage.contains("webrtcConnectionCreated") || eventMessage.contains("webrtcConnectionDestroyed") || eventMessage.contains("streamCreated") || eventMessage.contains("streamDestroyed")) {
+        if (eventMessage.contains("sessionCreated") || eventMessage.contains("sessionDestroyed") || eventMessage.contains("webrtcConnectionCreated") || eventMessage.contains("webrtcConnectionDestroyed") || eventMessage.contains("streamCreated") || eventMessage.contains("streamDestroyed") || eventMessage.contains("recordingStatusChanged")) {
             return eventMessage;
         }
 
