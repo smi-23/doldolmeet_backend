@@ -2,6 +2,7 @@ package com.doldolmeet.recording.controller;
 
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
+import com.doldolmeet.recording.entity.RecordingInfo;
 import com.doldolmeet.recording.service.RecordingInfoService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -340,7 +342,24 @@ public class MyRecordingController {
 		}
 	}
 
+	@RequestMapping(value = "/recordings/get", method = RequestMethod.GET)
+	public ResponseEntity<?> getRecordings(@RequestBody Map<String, Object> params) {
+		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		String fan =(String) params.get("fan");
 
+		try {
+			List<RecordingInfo> recordingInfos = recordingInfoService.findRecordingInfos(fanMeetingId, fan);
+			Map<String, Recording> recordings = new HashMap<>();
+			for (RecordingInfo recordingInfo : recordingInfos){
+				String idolNickname = recordingInfo.getIdol().getUserCommons().getNickname();
+				Recording recording = this.openVidu.getRecording(recordingInfo.getRecordingId());
+				recordings.put(idolNickname,recording);
+			}
+			return new ResponseEntity<>(recordings, HttpStatus.OK);
+		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
 
 	@RequestMapping(value = "/recording/delete", method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteRecording(@RequestBody Map<String, Object> params) {
