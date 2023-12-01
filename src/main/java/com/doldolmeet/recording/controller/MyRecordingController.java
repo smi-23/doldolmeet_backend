@@ -324,7 +324,7 @@ public class MyRecordingController {
 
 	}
 
-	@RequestMapping(value = "/recording/get", method = RequestMethod.GET)
+	@RequestMapping(value = "/recording/get", method = RequestMethod.POST)
 	public ResponseEntity<?> getRecording(@RequestBody Map<String, Object> params) {
 		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
 		String fan =(String) params.get("fan");
