@@ -132,7 +132,7 @@ public class CaptureService {
                 .captureId(capture.getId())
                 .captureName(capture.getCaptureName())
                 .fanMeetingId(capture.getFanMeeting().getId())
-                .nickName(capture.getIdol().getUserCommons().getNickName)
+                .nickName(capture.getIdol().getUserCommons().getNickname())
                 .captureUrl(capture.getCaptureUrl())
                 .fanId(capture.getFan().getId())
                 .build();
