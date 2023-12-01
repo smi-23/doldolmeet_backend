@@ -2,6 +2,7 @@ package com.doldolmeet.domain.capture.entity;
 
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.users.fan.entity.Fan;
+import com.doldolmeet.domain.users.idol.entity.Idol;
 import com.doldolmeet.utils.Timestamped;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,4 +33,8 @@ public class Capture extends Timestamped {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_meeting_id")
     private FanMeeting fanMeeting;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idol_id")
+    private Idol idol;
 }

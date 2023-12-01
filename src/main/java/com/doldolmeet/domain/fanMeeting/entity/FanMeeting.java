@@ -1,5 +1,6 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
+import com.doldolmeet.domain.capture.entity.Capture;
 import com.doldolmeet.domain.team.entity.Team;
 import com.doldolmeet.domain.teleRoom.entity.TeleRoom;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
@@ -75,6 +76,9 @@ public class FanMeeting {
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<Video> videos = new ArrayList<>();
 
+    @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
+    private List<Capture> captures = new ArrayList<>();
+  
     @OneToMany(mappedBy = "fanMeeting", cascade = CascadeType.ALL)
     private List<FanMeetingRoomOrder> fanMeetingRoomOrders = new ArrayList<>();
 }
