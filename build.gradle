@@ -71,6 +71,10 @@ dependencies {
     //recording을 위해 추가
     implementation 'io.openvidu:openvidu-java-client:2.29.0'
 
+    // 번역기 위해서 추가
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+
+
 
 }
 
