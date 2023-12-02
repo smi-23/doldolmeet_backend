@@ -30,6 +30,9 @@ public class FanMeetingRoomOrder {
     @Column
     private String roomThumbnail;
 
+    @Column
+    private String motionType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_meeting_id", nullable = false)
     private FanMeeting fanMeeting;

@@ -106,6 +106,7 @@ public class SseController {
                     params.put("currRoomType", currRoomOrder.getType());
                     params.put("idolNickName", currRoomOrder.getNickname());
                     params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
+                    params.put("motionType", currRoomOrder.getMotionType());
 
                     try {
                         log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
@@ -193,6 +194,7 @@ public class SseController {
                 params.put("currRoomType", prevRoomOrder.getType());
                 params.put("idolNickName", prevRoomOrder.getNickname());
                 params.put("roomThumbnail", prevRoomOrder.getRoomThumbnail());
+                params.put("motionType", prevRoomOrder.getMotionType());
 
                 SseService.emitters.get(fanMeetingId).get(newUsername).send(SseEmitter.event().name("moveToIdolRoom").data(params));
             } catch (IOException e) {
