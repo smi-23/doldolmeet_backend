@@ -111,7 +111,7 @@ public class SseService {
 
 
     //mainWaitingRoom에서 내 앞에 대기하는 인원 수 알려주기
-    @Scheduled(fixedRate = 20000)
+    @Scheduled(fixedRate = 1000)
     public void noticeNumberOfPeopleAhead() {
         // fanMeetingId를 알아야함.
         // main 대기방이 뭔지 알아야함.
