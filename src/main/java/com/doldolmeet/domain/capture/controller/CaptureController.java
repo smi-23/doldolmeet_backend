@@ -18,9 +18,9 @@ public class CaptureController {
     private final CaptureService captureService;
 
     // Capture Upload to S3
-    @PostMapping("/upload/{fanMeetingId}/{idolId}")
-    public ResponseEntity<Message> uploadCapture(@PathVariable Long fanMeetingId, @PathVariable Long idolId, @RequestPart MultipartFile file, HttpServletRequest request) {
-        return captureService.uploadCapture(fanMeetingId, idolId, file, request);
+    @PostMapping("/upload/{fanMeetingId}/{nickname}")
+    public ResponseEntity<Message> uploadCapture(@PathVariable Long fanMeetingId, @PathVariable String nickname, @RequestPart MultipartFile file, HttpServletRequest request) {
+        return captureService.uploadCapture(fanMeetingId, nickname, file, request);
     }
 
     // fan이 찍은 모든 capture 조회

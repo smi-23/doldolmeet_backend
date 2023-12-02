@@ -40,7 +40,7 @@ public class CaptureService {
 
     // Capture Upload to S3
     @Transactional
-    public ResponseEntity<Message> uploadCapture(Long fanMeetingId, Long idolId, MultipartFile file, HttpServletRequest request) {
+    public ResponseEntity<Message> uploadCapture(Long fanMeetingId, String nickname, MultipartFile file, HttpServletRequest request) {
         claims = jwtUtil.getClaims(request);
         Fan fan = userUtils.getFan(claims.getSubject());
 
@@ -48,9 +48,9 @@ public class CaptureService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FanMeeting not found with id: " + fanMeetingId));
 
         Idol foundidol = fanMeeting.getTeam().getIdols().stream()
-                .filter(idol -> idol.getId().equals(idolId))
+                .filter(idol -> idol.getUserCommons().getNickname().equals(nickname))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idol not found with id: " + idolId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idol not found with nickname: " + nickname));
 
         String captureUrl = awsS3Service.uploadFile(file);
 
