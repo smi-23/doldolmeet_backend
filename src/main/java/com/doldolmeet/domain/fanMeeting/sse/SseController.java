@@ -106,7 +106,7 @@ public class SseController {
                     params.put("currRoomType", currRoomOrder.getType());
                     params.put("idolNickName", currRoomOrder.getNickname());
                     params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
-                    params.put("motionType", currRoomOrder.getMotionType());
+                    params.put("motionType", nextRoomOrder.getMotionType());
 
                     try {
                         log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
@@ -188,13 +188,21 @@ public class SseController {
             FanMeetingRoomOrder prevRoomOrder = prevFanMeetingRoomOrderOpt.get();
 
             String newUsername = SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom()).first().getUsername();
+
+            Optional<FanMeetingRoomOrder> nextFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, prevRoomOrder.getNextRoom());
+
+            if (nextFanMeetingRoomOrderOpt.isEmpty()) {
+                throw new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER);
+            }
+            FanMeetingRoomOrder nextRoomOrder = nextFanMeetingRoomOrderOpt.get();
+
             try {
                 Map<String, String> params = new HashMap<>();
                 params.put("nextRoomId", prevRoomOrder.getNextRoom());
                 params.put("currRoomType", prevRoomOrder.getType());
                 params.put("idolNickName", prevRoomOrder.getNickname());
                 params.put("roomThumbnail", prevRoomOrder.getRoomThumbnail());
-                params.put("motionType", prevRoomOrder.getMotionType());
+                params.put("motionType", nextRoomOrder.getMotionType());
 
                 SseService.emitters.get(fanMeetingId).get(newUsername).send(SseEmitter.event().name("moveToIdolRoom").data(params));
             } catch (IOException e) {
