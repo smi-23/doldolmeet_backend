@@ -103,6 +103,7 @@ public class FanMeetingService {
 
         fanMeeting.getFanMeetingRoomOrders().add(roomOrder);
 
+        int cnt = 1;
         for (int i = 0; i < sz; i++) {
             if (i == sz - 1) {
                 roomOrder = FanMeetingRoomOrder.builder()
@@ -113,8 +114,10 @@ public class FanMeetingService {
                         .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
                         .type("idolRoom")
                         .motionType("halfHeart")
+                        .gameType(""+cnt)
                         .build();
                 fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(roomOrder.getCurrentRoom());
+                cnt += 1;
 
             } else {
                 String myRoomId = UUID.randomUUID().toString();;
@@ -127,7 +130,12 @@ public class FanMeetingService {
                         .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
                         .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
                         .motionType("bigHeart")
+                        .gameType(""+cnt)
                         .build();
+
+                if (i % 2 == 1) {
+                    cnt += 1;
+                }
 
                 fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(myRoomId);
             }
@@ -196,6 +204,7 @@ public class FanMeetingService {
                 .fanMeeting(fanMeeting)
                 .orderNumber(fanMeeting.getNextOrder())
                 .chatRoomId(chatRoomId)
+                .gameScore(0L)
                 .build();
 
         fanMeeting.setNextOrder(fanMeeting.getNextOrder() + 1L);
@@ -212,6 +221,7 @@ public class FanMeetingService {
                 .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)
                 .chatRoomId(chatRoomId)
                 .teamName(fanMeeting.getTeam().getTeamName())
+                .gameScore(fanToFanMeeting.getGameScore())
                 .build();
 
         return new ResponseEntity<>(new Message("팬미팅 신청 성공", responseDto), HttpStatus.OK);
@@ -610,5 +620,61 @@ public class FanMeetingService {
                 .build();
 
         return new ResponseEntity<>(new Message("팬미팅 시작 성공", responseDto), HttpStatus.OK);
+    }
+
+    @Transactional
+    public ResponseEntity<Message> saveGameScore(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        String username = claims.getSubject();
+        Fan fan = userUtils.getFan(username);
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+
+        Optional<FanToFanMeeting> fanToFanMeetingOpt = fanToFanMeetingRepository.findByFanAndFanMeeting(fan, fanMeeting);
+
+        if (!fanToFanMeetingOpt.isPresent()) {
+            throw new CustomException(FAN_TO_FANMEETING_NOT_FOUND);
+        }
+
+        FanToFanMeeting fanToFanMeeting = fanToFanMeetingOpt.get();
+
+        fanToFanMeeting.setGameScore(fanToFanMeeting.getGameScore() + 1);
+        fanToFanMeetingRepository.save(fanToFanMeeting);
+
+        return new ResponseEntity<>(new Message("게임 점수 저장 성공", null), HttpStatus.OK);
+    }
+
+    @Transactional
+    public ResponseEntity<Message> getGameScore(Long fanMeetingId, HttpServletRequest request) {
+        claims = jwtUtil.getClaims(request);
+        String username = claims.getSubject();
+        Fan fan = userUtils.getFan(username);
+
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (!fanMeetingOpt.isPresent()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        FanMeeting fanMeeting = fanMeetingOpt.get();
+
+        Optional<FanToFanMeeting> fanToFanMeetingOpt = fanToFanMeetingRepository.findByFanAndFanMeeting(fan, fanMeeting);
+
+        if (!fanToFanMeetingOpt.isPresent()) {
+            throw new CustomException(FAN_TO_FANMEETING_NOT_FOUND);
+        }
+
+        FanToFanMeeting fanToFanMeeting = fanToFanMeetingOpt.get();
+
+        Long gameScore = fanToFanMeeting.getGameScore();
+
+        return new ResponseEntity<>(new Message("게임 점수 불러오기 성공", gameScore), HttpStatus.OK);
+
     }
 }

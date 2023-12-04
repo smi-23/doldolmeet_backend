@@ -33,6 +33,9 @@ public class FanMeetingRoomOrder {
     @Column
     private String motionType;
 
+    @Column
+    private String gameType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_meeting_id", nullable = false)
     private FanMeeting fanMeeting;

@@ -3,6 +3,7 @@ package com.doldolmeet.domain.fanMeeting.sse;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeetingRoomOrder;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRoomOrderRepository;
 import com.doldolmeet.domain.openvidu.service.OpenviduService;
+import com.doldolmeet.domain.users.idol.repository.IdolRepository;
 import com.doldolmeet.exception.CustomException;
 import com.doldolmeet.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +43,7 @@ public class SseController {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
     private final OpenviduService openviduService;
+    private final IdolRepository idolRepository;
 
     private OpenVidu openvidu = new OpenVidu("https://youngeui-in-jungle.store/", "MY_SECRET");
 
@@ -107,6 +109,7 @@ public class SseController {
                     params.put("idolNickName", currRoomOrder.getNickname());
                     params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
                     params.put("motionType", nextRoomOrder.getMotionType());
+                    params.put("gameType", nextRoomOrder.getGameType());
 
                     try {
                         log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
@@ -203,6 +206,7 @@ public class SseController {
                 params.put("idolNickName", prevRoomOrder.getNickname());
                 params.put("roomThumbnail", prevRoomOrder.getRoomThumbnail());
                 params.put("motionType", nextRoomOrder.getMotionType());
+                params.put("gameType", nextRoomOrder.getGameType());
 
                 SseService.emitters.get(fanMeetingId).get(newUsername).send(SseEmitter.event().name("moveToIdolRoom").data(params));
             } catch (IOException e) {
@@ -259,10 +263,10 @@ public class SseController {
     public void waitAndKick(String body) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         // Submit tasks to the thread pool
-        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        System.out.println(openvidu);
-        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openvidu));
+//        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+//        System.out.println(openvidu);
+//        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openvidu, idolRepository));
         // Shutdown the thread pool when done
         executorService.shutdown();
     }
