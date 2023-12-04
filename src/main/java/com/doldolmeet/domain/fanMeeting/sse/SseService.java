@@ -117,16 +117,16 @@ public class SseService {
         // main 대기방이 뭔지 알아야함.
         List<FanMeeting> fanMeetings = fanMeetingRepository.findAll();
         for (FanMeeting fanMeeting : fanMeetings) {
-            System.out.println("@@@@@@@@@ 1 @@@@@@@@@");
+//            System.out.println("@@@@@@@@@ 1 @@@@@@@@@");
             Long fanMeetingId = fanMeeting.getId();
-            System.out.println("@@@@@@@@@ 2 @@@@@@@@@");
+//            System.out.println("@@@@@@@@@ 2 @@@@@@@@@");
             String mainWaitingRoomId = fanMeetingRoomOrderRepository.getMainWaitingRoomfindByFanMeetingId(fanMeetingId).get().getCurrentRoom();
-            System.out.println("@@@@@@@@@ 3 @@@@@@@@@");
+//            System.out.println("@@@@@@@@@ 3 @@@@@@@@@");
             if (waitingRooms.get(fanMeetingId) == null) {
                 continue;
             }
             SortedSet<UserNameAndOrderNumber> waitersInMainWaitingRoom = waitingRooms.get(fanMeetingId).get(mainWaitingRoomId);
-            System.out.println("@@@@@@@@@ 4 @@@@@@@@@");
+//            System.out.println("@@@@@@@@@ 4 @@@@@@@@@");
             // mainwaitingroom에 있는 사람들에게 이벤트를 보내서, 자기가 몇번째 대기자인지 알려준다.
             waitersInMainWaitingRoom.forEach(waiter -> {
                 try {

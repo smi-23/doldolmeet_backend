@@ -40,6 +40,9 @@ public class FanToFanMeeting {
     @Column(nullable = false)
     private String chatRoomId;
 
+    @Column
+    private Long gameScore;
+
     public void setUserAndFanMeeting(Fan fan, FanMeeting fanMeeting) {
         this.fan = fan;
         this.fanMeeting = fanMeeting;
