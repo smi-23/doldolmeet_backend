@@ -122,14 +122,32 @@ public class SseController {
 
                 // 다음 방 커넥션이 1개면 관리자만 들어와 있는 경우라고 설정
                 else if (connections.size() == 1) {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("nextRoomId", currRoomOrder.getNextRoom());
+                    params.put("currRoomType", currRoomOrder.getType());
+                    params.put("idolNickName", currRoomOrder.getNickname());
+                    params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
+                    params.put("motionType", nextRoomOrder.getMotionType());
+                    params.put("gameType", nextRoomOrder.getGameType());
+
                     try {
-                        log.info("해당 아이돌 방 커넥션 1개임.");
-                        SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("adminOnly").data("adminOnly"));
-                        sseService.addwaiter(username, fanMeetingId, sessionId);
+                        log.info("해당 아이돌 방 커넥션 1개인데 일단 들여보냄");
+                        SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                         return eventMessage;
+                        // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
+                        // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
+
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+
+//                    try {
+//                        SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("adminOnly").data("adminOnly"));
+//                        sseService.addwaiter(username, fanMeetingId, sessionId);
+//                        return eventMessage;
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
                 }
 
                 // 3개면 진행중임
