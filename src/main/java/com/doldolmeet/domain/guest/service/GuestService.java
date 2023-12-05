@@ -48,6 +48,7 @@ public class GuestService {
                 .username(username)
                 .password(password)
                 .nickname(requestDto.getNickname())
+                .profileImgUrl(requestDto.getProfileImgUrl())
                 .role(requestDto.getRole())
                 .build();
 

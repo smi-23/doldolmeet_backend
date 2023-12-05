@@ -244,20 +244,24 @@ public class FanMeetingService {
 
         if (fan.isPresent()) {
             fanMeetingOpt = fanMeetingRepository.findFanMeetingsByFan(fan.get(), midNightTime, currentTime, tomorrowMidNightTime);
-        }
 
-        else if (idol.isPresent()) {
+            // 팬미팅에 대한 현재 사용자의 신청 여부 확인
+            Optional<FanToFanMeeting> fanToFanMeetingOpt = fanToFanMeetingRepository.findByFanAndFanMeeting(fan.orElse(null), fanMeetingOpt.orElse(null));
+
+            if (!fanToFanMeetingOpt.isPresent()) {
+                // 현재 사용자가 해당 팬미팅에 신청하지 않은 경우
+                throw new CustomException(FANMEETING_NOT_APPLIED);
+            }
+        } else if (idol.isPresent()) {
             fanMeetingOpt = fanMeetingRepository.findFanMeetingsByTeamOne(idol.get().getTeam(), midNightTime, currentTime, tomorrowMidNightTime);
-//            fanMeetingOpt = fanMeetingRepository.findFanMeetingsByIdol(idol.get(), midNightTime, currentTime);
-        }
-
-        else {
+        } else {
             throw new CustomException(USER_NOT_FOUND);
         }
 
         if (!fanMeetingOpt.isPresent()) {
             throw new CustomException(FANMEETING_NOT_FOUND);
         }
+
         FanMeeting fanMeeting = fanMeetingOpt.get();
 
         FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
@@ -272,6 +276,7 @@ public class FanMeetingService {
 
         return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);
     }
+
 
     @Transactional
     public ResponseEntity<Message> canEnterFanMeeting(Long fanMeetingId, HttpServletRequest request) {

@@ -40,6 +40,7 @@ public enum ErrorCode {
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팀을 찾을 수 없습니다."),
     IDOL_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 아이돌을 찾을 수 없습니다."),
     FANMEETING_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팬미팅을  찾을 수 없습니다."),
+    FANMEETING_NOT_APPLIED(HttpStatus.NOT_FOUND, "팬미팅이 승인되지 않았습니다."),
     WAITROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 대기방을 찾을 수 없습니다."),
     //인증
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
