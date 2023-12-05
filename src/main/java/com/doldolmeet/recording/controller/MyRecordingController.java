@@ -283,29 +283,26 @@ public class MyRecordingController {
 		String fan =(String) params.get("fan");
 		String fileName = (String) params.get("name");
 		String idol = (String) params.get("idol");
-
 		RecordingProperties properties = new RecordingProperties.Builder().outputMode(outputMode).hasAudio(hasAudio)
 				.hasVideo(hasVideo).name(fileName).build();
-
 		log.info("Starting recording for session " + sessionId + " with properties {outputMode=" + outputMode
 				+ ", hasAudio=" + hasAudio + ", hasVideo=" + hasVideo + "fan=" + fan + "idol=" + idol, "fileName=" + fileName + "}"	);
 
-//		onApplicationStart();
-
 		try {
 			openVidu.fetch();
+			System.out.println(this.sessionRecordings);
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
-			log.info("레코딩 정보: " + recording);
-			HashMap<String, String> sessionIdMap = new HashMap<>();
-			sessionIdMap.put("sessionId", sessionId);
-//			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
 			this.sessionRecordings.put(sessionId, true);
-			this.sessionIdRecordingsMap.put(sessionId, recording);
+			this.sessionIdRecordingsMap.put(sessionId+fan, recording);
+
 			// recordingInfo entity에 저장
+			System.out.println("for null check // recording : " + recording);
+			System.out.println("for null check // recording.getId() : " + recording.getId());
 			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, fileName, recording.getId());
-			log.info("여기까지 오면 레코딩 정보 저장 완료");
+			System.out.println("recordingInfo stored in DB");
 			return new ResponseEntity<>(recording, HttpStatus.OK);
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+			log.error("startRecording 에러 발생: {}", e);
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -331,7 +328,6 @@ public class MyRecordingController {
 		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
 		String fan =(String) params.get("fan");
 		String idol = (String) params.get("idol");
-
 
 		try {
 			String recordingId = recordingInfoService.findRecordingId(fanMeetingId, fan, idol);
@@ -375,20 +371,6 @@ public class MyRecordingController {
 		}
 	}
 
-
-
-//	@RequestMapping(value = "/recording/get/{recordingId}", method = RequestMethod.GET)
-//	public ResponseEntity<?> getRecording(@PathVariable(value = "recordingId") String recordingId) {
-//
-//		log.info("Getting recording | {recordingId}=" + recordingId);
-//
-//		try {
-//			Recording recording = this.openVidu.getRecording(recordingId);
-//			return new ResponseEntity<>(recording, HttpStatus.OK);
-//		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
-//			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-//		}
-//	}
 
 	@RequestMapping(value = "/recording/list", method = RequestMethod.GET)
 	public ResponseEntity<?> listRecordings() {

@@ -18,18 +18,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
+import java.util.concurrent.ThreadPoolExecutor;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static com.doldolmeet.exception.ErrorCode.*;
 
@@ -44,6 +39,9 @@ public class SseController {
     private final FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
     private final OpenviduService openviduService;
     private final IdolRepository idolRepository;
+
+    public static Map<String,Object> networkChecker = new ConcurrentHashMap<>();
+    public static Map<String,Map<String,Long>> userDroppedByBadNetwork = new ConcurrentHashMap<>();
 
     private OpenVidu openvidu = new OpenVidu("https://youngeui-in-jungle.store/", "MY_SECRET");
 
@@ -181,6 +179,13 @@ public class SseController {
 
         // 참가자가 아이돌방에서 나갔을 때
         else if (eventMessage.contains("participantLeft") & eventMessage.contains("idolRoom")) {
+            // 네트워크 문제로 나간경우(네트워크 문제로 나간경우를 잡아내는데 시간이 걸리기 때문에, 시연할 때 disconnect로 처리)
+            if (eventMessage.contains("networkDisconnect")){
+                synchronized (networkChecker.get(sessionId)){
+                    networkChecker.get(sessionId).notify();
+                }
+            }
+
             // 자기 대기방에 있는 팬 중 가장 우선순위 높은 팬에게 쏨
             // 해당 방을 nextRoomId로 가지는 RoomOrder 조회
             Optional<FanMeetingRoomOrder> prevFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndNextRoom(fanMeetingId, sessionId);

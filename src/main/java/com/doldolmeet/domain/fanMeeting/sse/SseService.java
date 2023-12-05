@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 import static com.doldolmeet.exception.ErrorCode.NOT_FOUND_FANTOFANMEETING;
 
 @Service
@@ -154,5 +155,8 @@ public class SseService {
     public void printemitter() {
         log.info("emitter : " + emitters);
         log.info("waitingRoom : " + waitingRooms);
+        log.info("networkChecker : " + SseController.networkChecker);
+        log.info("userDroppedByBadNetwork : " + SseController.userDroppedByBadNetwork);
+
     }
 }
