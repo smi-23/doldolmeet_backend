@@ -52,15 +52,21 @@ public class SseService {
             throw new RuntimeException(e);
         }
 
-        emitter.onCompletion(() -> {
-            log.info("onCompletion callback");
-            emitters.get(fanMeetingId).remove(username);    // 만료되면 리스트에서 삭제
-        });
-
-        emitter.onTimeout(() -> {
-            log.info("onTimeout callback");
-            emitter.complete();
-        });
+//        emitter.onCompletion(() -> {
+//            log.info("onCompletion callback");
+//            emitters.get(fanMeetingId).remove(username);    // 만료되면 리스트에서 삭제
+//        });
+//
+//        emitter.onTimeout(() -> {
+//            log.info("onTimeout callback");
+//            emitter.complete();
+//        });
+//
+//        emitter.onError(throwable -> {
+//            log.info("onError callback");
+//            log.info(throwable.getMessage());
+//            emitter.complete();
+//        }
 
         log.info("SseService.addEmitter() called");
         return emitter;
