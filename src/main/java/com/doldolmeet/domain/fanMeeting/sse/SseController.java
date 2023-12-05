@@ -22,10 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -190,7 +187,13 @@ public class SseController {
             }
             FanMeetingRoomOrder prevRoomOrder = prevFanMeetingRoomOrderOpt.get();
 
-            String newUsername = SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom()).first().getUsername();
+
+            SortedSet<UserNameAndOrderNumber> waitingRoom = SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom());
+            if (waitingRoom.isEmpty()) {
+                throw new CustomException(WAITROOM_FAN_NOT_FOUND);
+            }
+
+            String newUsername = waitingRoom.first().getUsername();
 
             Optional<FanMeetingRoomOrder> nextFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, prevRoomOrder.getNextRoom());
 
