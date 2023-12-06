@@ -206,6 +206,10 @@ public class SseController {
             FanMeetingRoomOrder prevRoomOrder = prevFanMeetingRoomOrderOpt.get();
 
 
+            if (SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom()) == null) {
+                throw new CustomException(WAITROOM_NOT_FOUND);
+            }
+
             SortedSet<UserNameAndOrderNumber> waitingRoom = SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom());
             if (waitingRoom.isEmpty()) {
                 throw new CustomException(WAITROOM_FAN_NOT_FOUND);
