@@ -1,5 +1,6 @@
 package com.doldolmeet.domain.fanMeeting.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,5 +39,6 @@ public class FanMeetingRoomOrder {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fan_meeting_id", nullable = false)
+    @JsonIgnore
     private FanMeeting fanMeeting;
 }
