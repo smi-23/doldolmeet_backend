@@ -1,6 +1,8 @@
 package com.doldolmeet.domain.fanMeeting.sse;
 
+import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.fanMeeting.entity.FanMeetingRoomOrder;
+import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRoomOrderRepository;
 import com.doldolmeet.domain.openvidu.service.OpenviduService;
 import com.doldolmeet.domain.users.idol.repository.IdolRepository;
@@ -33,6 +35,7 @@ public class SseController {
     public final SseService sseService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
+    private final FanMeetingRepository fanMeetingRepository;
     private final OpenviduService openviduService;
     private final IdolRepository idolRepository;
 
@@ -82,8 +85,11 @@ public class SseController {
                     SseService.isIdolsEntered.get(fanMeetingId).put(username, true);
                 }
 
-                // 모두 들어왔으면 해당 방의 모든 팬의 에미터에게 다 들어왔다는 이벤트를 쏴주기
-                if (SseService.isIdolsEntered.get(fanMeetingId).values().stream().allMatch(isEntered -> isEntered)) {
+                // keyset 크기가 2이고, 모두 들어왔으면 해당 방의 모든 팬의 에미터에게 다 들어왔다는 이벤트를 쏴주기
+                FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
+                Integer teamSize = fanMeeting.getTeam().getTeamSize();
+
+                if (SseService.isIdolsEntered.get(fanMeetingId).size() == teamSize && SseService.isIdolsEntered.get(fanMeetingId).values().stream().allMatch(isEntered -> isEntered)) {
                     try {
                         log.info("모두 들어왔으니까 팬들에게 다 들어왔다고 알려주기");
                         // TODO: 지금은 해당 팬미팅에 접속한 모든 팬들에게 다 들어왔다고 알려주는데, 나중에는 해당 아이돌 방에 들어온 팬들에게만 알려주는게 좋을듯.

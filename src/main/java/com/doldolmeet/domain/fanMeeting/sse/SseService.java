@@ -167,5 +167,6 @@ public class SseService {
         log.info("emitter : " + emitters);
         log.info("waitingRoom : " + waitingRooms);
         log.info("gameRoom : " + gameRooms);
+        log.info("isIdolsEntered : " + isIdolsEntered);
     }
 }
