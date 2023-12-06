@@ -112,7 +112,7 @@ public class FanMeetingService {
                     .nextRoom(null)
                     .fanMeeting(fanMeeting)
                     .nickname(idols.get(i/2).getUserCommons().getNickname())
-                    .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
+                    .roomThumbnail(idols.get(i/2).getUserCommons().getThumbNailImgUrl())
                     .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
                     .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
                     .gameType(""+cnt)
