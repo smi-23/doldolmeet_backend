@@ -63,7 +63,8 @@ public enum ErrorCode {
     INVALID_IDOLROOM_STATE(HttpStatus.BAD_REQUEST, "아이돌 방의 상태가 유효하지 않습니다."),
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 세션을 찾을 수 없습니다."),
     INVALID_FANMEETING_END(HttpStatus.BAD_REQUEST, "대기방의 다음 방이 없습니다."),
-    SSE_NOT_SENT_FIRST_IDOL_WAIT_ROOM(HttpStatus.INTERNAL_SERVER_ERROR, "첫번째 아이돌 대기방으로 이동하는 SSE 이벤트를 보내지 못했습니다.");
+    SSE_NOT_SENT_FIRST_IDOL_WAIT_ROOM(HttpStatus.INTERNAL_SERVER_ERROR, "첫번째 아이돌 대기방으로 이동하는 SSE 이벤트를 보내지 못했습니다."),
+    SLEEP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Thread.sleep() 실패");
 
     private final HttpStatus httpStatus;
     private final String data;

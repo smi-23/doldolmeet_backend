@@ -110,6 +110,12 @@ public class SseController {
 
                     try {
                         log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            throw new CustomException(SLEEP_FAILED);
+                        }
+
                         SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                         return eventMessage;
                         // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
@@ -132,6 +138,13 @@ public class SseController {
 
                     try {
                         log.info("해당 아이돌 방 커넥션 1개인데 일단 들여보냄");
+
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            throw new CustomException(SLEEP_FAILED);
+                        }
+
                         SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                         return eventMessage;
                         // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
