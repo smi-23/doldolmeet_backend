@@ -49,13 +49,11 @@ public class MyTask implements Runnable {
     @Override
     public void run() {
         long timeLimit = 60000;
-        long gameStart = 40000;
-        long gameEnd = 20000;
         long endNotice = 10000;
 
         try {
             // 게임 시작 전까지 자기
-            Thread.sleep(timeLimit - gameStart); // 20초 대화
+            Thread.sleep(timeLimit - endNotice); // 20초 대화
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -78,33 +76,17 @@ public class MyTask implements Runnable {
             SseEmitter emitter = SseService.emitters.get(fanMeetingId).get(username);
             SseEmitter idolEmitter = SseService.emitters.get(fanMeetingId).get(idol.getUserCommons().getUsername());
 
-            // 게임 시작
-            log.info("게임 시작!!");
-            emitter.send(SseEmitter.event().name("gameStart").data(new HashMap<>()));
-
-            log.info("아이돌 에미터: " + idolEmitter.toString());
-            idolEmitter.send(SseEmitter.event().name("idolGameStart").data(new HashMap<>()));
-
-            // 게임 종료시까지 자기
-            Thread.sleep(gameStart - gameEnd); // 20초 게임 진행
-
-            // 게임 종료
-            log.info("게임 종료!!");
-            emitter.send(SseEmitter.event().name("gameEnd").data(new HashMap<>()));
-
-            // 팬미팅 종료시까지 자기
-            Thread.sleep(gameEnd - endNotice); // 10초 대화
-
+            log.info("idolEmitter : " + idolEmitter);
+            log.info("fanEmitter : " + emitter);
             // 종료 알림을 보내기
             emitter.send(SseEmitter.event().name("endNotice").data(new HashMap<>()));
+            idolEmitter.send(SseEmitter.event().name("idolEndNotice").data(new HashMap<>()));
+
             Thread.sleep(endNotice); // 종료알림 보내고 10초 후 끝
 
             log.info("-------종료되는 connectionId : " + connectionId);
             Session session = openviduService.getSession(sessionId);
 
-            // 연결 끊기기전 녹화 종료
-//            String recordingId = MyRecordingController.recordingInfo.get(List.of(fanMeetingId, username, sessionId));
-//            String recordingId = MyRecordingController.sessionRecordings.get();
             String recordingId = MyRecordingController.sessionIdRecordingsMap.get(sessionId).getId();
             this.openvidu.stopRecording(recordingId);
             MyRecordingController.sessionRecordings.remove(sessionId);
