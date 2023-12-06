@@ -131,6 +131,11 @@ public class SseService {
             if (waitingRooms.get(fanMeetingId) == null) {
                 continue;
             }
+
+            if (waitingRooms.get(fanMeetingId).get(mainWaitingRoomId) == null) {
+                continue;
+            }
+
             SortedSet<UserNameAndOrderNumber> waitersInMainWaitingRoom = waitingRooms.get(fanMeetingId).get(mainWaitingRoomId);
 //            System.out.println("@@@@@@@@@ 4 @@@@@@@@@");
             // mainwaitingroom에 있는 사람들에게 이벤트를 보내서, 자기가 몇번째 대기자인지 알려준다.
