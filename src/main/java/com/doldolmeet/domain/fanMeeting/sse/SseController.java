@@ -84,6 +84,7 @@ public class SseController {
                 if (SseService.isIdolsEntered.get(fanMeetingId).get(username) == null) {
                     SseService.isIdolsEntered.get(fanMeetingId).put(username, true);
                 }
+                SseService.isIdolsEntered.get(fanMeetingId).put(username, true);
 
                 // keyset 크기가 2이고, 모두 들어왔으면 해당 방의 모든 팬의 에미터에게 다 들어왔다는 이벤트를 쏴주기
                 FanMeeting fanMeeting = fanMeetingRepository.findById(fanMeetingId).orElseThrow(() -> new CustomException(FANMEETING_NOT_FOUND));
