@@ -279,7 +279,7 @@ public class MyRecordingController {
 		Recording.OutputMode outputMode = Recording.OutputMode.valueOf((String) params.get("outputMode"));
 		boolean hasAudio = (boolean) params.get("hasAudio");
 		boolean hasVideo = (boolean) params.get("hasVideo");
-		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		Long fanMeetingId = Long.valueOf(params.getOrDefault("fanMeetingId", "1").toString());
 		String fan =(String) params.get("fan");
 		String fileName = (String) params.get("name");
 		String idol = (String) params.get("idol");
@@ -328,7 +328,7 @@ public class MyRecordingController {
 
 	@RequestMapping(value = "/recording/get", method = RequestMethod.POST)
 	public ResponseEntity<?> getRecording(@RequestBody Map<String, Object> params) {
-		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		Long fanMeetingId =Long.valueOf(params.getOrDefault("fanMeetingId", "1").toString());
 		String fan =(String) params.get("fan");
 		String idol = (String) params.get("idol");
 
@@ -344,7 +344,7 @@ public class MyRecordingController {
 
 	@RequestMapping(value = "/recordings/get", method = RequestMethod.POST)
 	public ResponseEntity<?> getRecordings(@RequestBody Map<String, Object> params) {
-		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		Long fanMeetingId =Long.valueOf(params.getOrDefault("fanMeetingId", "1").toString());
 		String fan =(String) params.get("fan");
 
 		try {
