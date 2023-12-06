@@ -35,6 +35,13 @@ public class SseService {
 
     public static Map<Long, Map<String, Session>> Rooms = new ConcurrentHashMap<>();
 
+    // 팬미팅ID, 아이돌username, 아이돌이 팬미팅에 들어왔는지 여부
+    public static Map<Long, Map<String, Boolean>> isIdolsEntered = new ConcurrentHashMap<>();
+
+    // 팬미팅ID, 해당 방에 들어 있는 팬들의 username
+    public static Map<Long, List<String>> gameRooms = new ConcurrentHashMap<>();
+
+
     //Emitter 추가
     public SseEmitter createEmitter(Long fanMeetingId, String username) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
@@ -159,5 +166,6 @@ public class SseService {
     public void printemitter() {
         log.info("emitter : " + emitters);
         log.info("waitingRoom : " + waitingRooms);
+        log.info("gameRoom : " + gameRooms);
     }
 }

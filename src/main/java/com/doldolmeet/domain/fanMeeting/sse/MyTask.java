@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
 import io.openvidu.java.client.OpenVidu;
 
 
@@ -37,7 +38,7 @@ public class MyTask implements Runnable {
     private OpenVidu openvidu;
     private IdolRepository idolRepository;
 
-    public MyTask(String body, OpenviduService openviduService, ObjectMapper objectMapper, FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository, OpenVidu openvidu, IdolRepository idolRepository){
+    public MyTask(String body, OpenviduService openviduService, ObjectMapper objectMapper, FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository, OpenVidu openvidu, IdolRepository idolRepository) {
         this.body = body;
         this.openviduService = openviduService;
         this.objectMapper = objectMapper;
@@ -88,7 +89,14 @@ public class MyTask implements Runnable {
             Session session = openviduService.getSession(sessionId);
 
             String recordingId = MyRecordingController.sessionIdRecordingsMap.get(sessionId).getId();
-            this.openvidu.stopRecording(recordingId);
+
+            try {
+                this.openvidu.stopRecording(recordingId);
+            } catch (OpenViduJavaClientException e) {
+                log.error("--------- 녹화 종료 실패", e);
+                throw new RuntimeException(e);
+            }
+
             MyRecordingController.sessionRecordings.remove(sessionId);
             // 연결 끊기
             session.forceDisconnect(connectionId);
