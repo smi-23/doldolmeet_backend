@@ -113,7 +113,7 @@ public class FanMeetingService {
                         .nickname(idols.get(i/2).getUserCommons().getNickname())
                         .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
                         .type("idolRoom")
-                        .motionType("halfHeart")
+                        .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
                         .gameType(""+cnt)
                         .build();
                 fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(roomOrder.getCurrentRoom());
@@ -129,7 +129,7 @@ public class FanMeetingService {
                         .nickname(idols.get(i/2).getUserCommons().getNickname())
                         .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
                         .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
-                        .motionType("bigHeart")
+                        .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
                         .gameType(""+cnt)
                         .build();
 
