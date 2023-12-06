@@ -117,9 +117,14 @@ public class MyTask implements Runnable {
             }
             FanMeetingRoomOrder currRoomOrder = currFanMeetingRoomOrderOpt.get();
 
+            // 다음 방으로 이동
+            FanMeetingRoomOrder nextRoomOrder = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, currRoomOrder.getNextRoom()).orElseThrow(() -> new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER));
+
             Map<String, String> params = new HashMap<>();
             params.put("nextRoomId", currRoomOrder.getNextRoom());
             params.put("currRoomType", currRoomOrder.getType());
+            params.put("nextRoomType", nextRoomOrder.getType());
+
             emitter.send(SseEmitter.event().name("moveToWaitRoom").data(params));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

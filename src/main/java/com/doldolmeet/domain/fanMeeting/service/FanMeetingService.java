@@ -90,7 +90,7 @@ public class FanMeetingService {
 
         int sz = idols.size() * 2;
 
-        // 메인 대기방 생성
+        // 메인 대기방 생성, 1개
         FanMeetingRoomOrder roomOrder;
         roomOrder = FanMeetingRoomOrder.builder()
                 .currentRoom(UUID.randomUUID().toString())
@@ -104,44 +104,41 @@ public class FanMeetingService {
         fanMeeting.getFanMeetingRoomOrders().add(roomOrder);
 
         int cnt = 1;
-        for (int i = 0; i < sz; i++) {
-            if (i == sz - 1) {
-                roomOrder = FanMeetingRoomOrder.builder()
-                        .currentRoom(UUID.randomUUID().toString())
-                        .nextRoom("END")
-                        .fanMeeting(fanMeeting)
-                        .nickname(idols.get(i/2).getUserCommons().getNickname())
-                        .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
-                        .type("idolRoom")
-                        .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
-                        .gameType(""+cnt)
-                        .build();
-                fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(roomOrder.getCurrentRoom());
+        for (int i = 0; i < sz; i++) { // sz개
+            String myRoomId = UUID.randomUUID().toString();;
+
+            roomOrder = FanMeetingRoomOrder.builder()
+                    .currentRoom(myRoomId)
+                    .nextRoom(null)
+                    .fanMeeting(fanMeeting)
+                    .nickname(idols.get(i/2).getUserCommons().getNickname())
+                    .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
+                    .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
+                    .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
+                    .gameType(""+cnt)
+                    .build();
+
+            if (i % 2 == 1) {
                 cnt += 1;
-
-            } else {
-                String myRoomId = UUID.randomUUID().toString();;
-
-                roomOrder = FanMeetingRoomOrder.builder()
-                        .currentRoom(myRoomId)
-                        .nextRoom(null)
-                        .fanMeeting(fanMeeting)
-                        .nickname(idols.get(i/2).getUserCommons().getNickname())
-                        .roomThumbnail(idols.get(i/2).getUserCommons().getProfileImgUrl())
-                        .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
-                        .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
-                        .gameType(""+cnt)
-                        .build();
-
-                if (i % 2 == 1) {
-                    cnt += 1;
-                }
-
-                fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(myRoomId);
             }
 
+            fanMeeting.getFanMeetingRoomOrders().get(i).setNextRoom(myRoomId);
             fanMeeting.getFanMeetingRoomOrders().add(roomOrder);
         }
+
+        roomOrder = FanMeetingRoomOrder.builder()
+                .currentRoom(UUID.randomUUID().toString())
+                .nextRoom("END")
+                .fanMeeting(fanMeeting)
+                .nickname("gameRoom")
+                .roomThumbnail("gameRoomUrl")
+                .type("gameRoom")
+                .motionType("noMotion")
+                .gameType("noGameType")
+                .build();
+
+        fanMeeting.getFanMeetingRoomOrders().get(sz).setNextRoom(roomOrder.getCurrentRoom());
+        fanMeeting.getFanMeetingRoomOrders().add(roomOrder);
 
         fanMeetingRepository.save(fanMeeting);
         Map<String, Long> result = new HashMap<>();
