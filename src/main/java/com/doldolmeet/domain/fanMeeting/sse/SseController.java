@@ -139,11 +139,11 @@ public class SseController {
                     try {
                         log.info("해당 아이돌 방 커넥션 1개인데 일단 들여보냄");
 
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            throw new CustomException(SLEEP_FAILED);
-                        }
+//                        try {
+//                            Thread.sleep(1000);
+//                        } catch (InterruptedException e) {
+//                            throw new CustomException(SLEEP_FAILED);
+//                        }
 
                         SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                         return eventMessage;
