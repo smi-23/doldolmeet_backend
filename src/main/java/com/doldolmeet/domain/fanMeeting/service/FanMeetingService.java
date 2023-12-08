@@ -684,4 +684,16 @@ public class FanMeetingService {
         return new ResponseEntity<>(new Message("게임 점수 불러오기 성공", gameScore), HttpStatus.OK);
 
     }
+
+    public ResponseEntity<Message> getGameRoomSessionId(Long fanMeetingId, HttpServletRequest request) {
+        Optional<FanMeetingRoomOrder> gameRoomOpt = fanMeetingRoomOrderRepository.getGameRoomFindByFanMeetingId(fanMeetingId);
+
+        if (!gameRoomOpt.isPresent()) {
+            throw new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER);
+        }
+
+        FanMeetingRoomOrder gameRoom = gameRoomOpt.get();
+
+        return new ResponseEntity<>(new Message("게임방 세션 아이디 불러오기 성공", gameRoom.getCurrentRoom()), HttpStatus.OK);
+    }
 }

@@ -135,4 +135,12 @@ public class FanMeetingController {
     public ResponseEntity<Message> getGameScore(@PathVariable Long fanMeetingId, HttpServletRequest request) {
         return fanMeetingService.getGameScore(fanMeetingId, request);
     }
+
+    /**
+     * 팬미팅 아이디를 받아서 해당 팬미팅의 게임방 세션 아이디를 리턴하는 API
+     */
+    @GetMapping("/fanMeetings/{fanMeetingId}/get-game-room-id")
+    public ResponseEntity<Message> getGameRoomId(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getGameRoomSessionId(fanMeetingId, request);
+    }
 }
