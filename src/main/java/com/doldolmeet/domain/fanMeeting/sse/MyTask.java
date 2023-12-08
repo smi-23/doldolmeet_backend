@@ -50,11 +50,11 @@ public class MyTask implements Runnable {
     @Override
     public void run() {
         long timeLimit = 60000;
-        long endNotice = 10000;
+        long endNotice = 15000;
 
         try {
             // 게임 시작 전까지 자기
-            Thread.sleep(timeLimit - endNotice); // 20초 대화
+            Thread.sleep(timeLimit - endNotice); // 45초 대화
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
