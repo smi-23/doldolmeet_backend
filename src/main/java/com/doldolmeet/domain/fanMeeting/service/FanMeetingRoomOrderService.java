@@ -18,7 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.doldolmeet.exception.ErrorCode.FANMEETING_NOT_FOUND;
 
@@ -58,5 +60,28 @@ public class FanMeetingRoomOrderService {
                 .build();
 
         return new ResponseEntity<>(new Message("roomOrders 반환 성공!!", responseDto), HttpStatus.OK);
+    }
+
+    public ResponseEntity<Message> getAllFanMeetingRoomOrder(Long fanMeetingId) {
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (fanMeetingOpt.isEmpty()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        List<FanMeetingRoomOrder> idolRoomOrders = fanMeetingRoomOrderRepository.findByFanMeetingId(fanMeetingId);
+
+        List<FanMeetingRoomOrderDto> fanMeetingRoomOrderDtos = idolRoomOrders.stream()
+                .map(order -> FanMeetingRoomOrderDto.builder()
+                        .id(order.getId())
+                        .motionType(order.getMotionType())
+                        .currentRoom(order.getCurrentRoom())
+                        .idolName(order.getNickname())
+                        .type(order.getType())
+                        .fanMeetingId(fanMeetingId)
+                        .build())
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(new Message("List<roomOrders> 반환 성공!!", fanMeetingRoomOrderDtos), HttpStatus.OK);
     }
 }
