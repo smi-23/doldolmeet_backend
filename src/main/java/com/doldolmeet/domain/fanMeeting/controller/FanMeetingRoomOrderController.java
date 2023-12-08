@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.*;
 public class FanMeetingRoomOrderController {
     private final FanMeetingRoomOrderService fanMeetingRoomOrderService;
 
+    @GetMapping("/all/{fanMeetingId}")
+    public ResponseEntity<Message> getAllFanMeetingRoomOrder(@PathVariable Long fanMeetingId) {
+        return fanMeetingRoomOrderService.getAllFanMeetingRoomOrder(fanMeetingId);
+    }
+
     // fanMeetingId, roomType과 token안의 idol정보를 바탕으로 fanMeetingRoomOrder조회
     @GetMapping("/{fanMeetingId}")
     public ResponseEntity<Message> getFanMeetingRoomOrder(@PathVariable Long fanMeetingId, HttpServletRequest request) {

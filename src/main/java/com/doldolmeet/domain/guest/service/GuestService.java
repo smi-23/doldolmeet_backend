@@ -49,7 +49,7 @@ public class GuestService {
                 .password(password)
                 .nickname(requestDto.getNickname())
                 .profileImgUrl(requestDto.getProfileImgUrl())
-                .thumbNailImgUrl(requestDto.getThumbNailImg())
+                .thumbNailImgUrl(requestDto.getThumbNailImgUrl())
                 .role(requestDto.getRole())
                 .build();
 

@@ -24,5 +24,6 @@ public interface FanMeetingRoomOrderRepository extends JpaRepository<FanMeetingR
 
     Optional<FanMeetingRoomOrder> findByFanMeetingIdAndTypeAndNickname(Long fanMeetingId, String type, String nickname);
 
-
+    @Query("select f from FanMeetingRoomOrder f join fetch f.fanMeeting where f.fanMeeting.id = :fanMeetingId and f.type = 'gameRoom'")
+    Optional<FanMeetingRoomOrder> getGameRoomFindByFanMeetingId(@Param("fanMeetingId") Long fanMeetingId);
 }
