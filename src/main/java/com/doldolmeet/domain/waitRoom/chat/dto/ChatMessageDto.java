@@ -18,5 +18,6 @@ public class ChatMessageDto implements Serializable {
     private String roomId;
     private String sender;
     private String message;
+    private String profileImg;
     private LocalDateTime timestamp; // 새로운 필드 추가
 }

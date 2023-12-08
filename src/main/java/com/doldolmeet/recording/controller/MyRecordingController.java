@@ -2,6 +2,7 @@ package com.doldolmeet.recording.controller;
 
 import com.doldolmeet.domain.fanMeeting.entity.FanMeeting;
 import com.doldolmeet.domain.fanMeeting.repository.FanMeetingRepository;
+import com.doldolmeet.recording.entity.RecordingInfo;
 import com.doldolmeet.recording.service.RecordingInfoService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -277,7 +279,8 @@ public class MyRecordingController {
 		Recording.OutputMode outputMode = Recording.OutputMode.valueOf((String) params.get("outputMode"));
 		boolean hasAudio = (boolean) params.get("hasAudio");
 		boolean hasVideo = (boolean) params.get("hasVideo");
-		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		String fanMeetingIdStr = params.getOrDefault("fanMeetingId", "1").toString();
+		Long fanMeetingId = Long.valueOf(fanMeetingIdStr.equals("undefined") ? "1" : fanMeetingIdStr);
 		String fan =(String) params.get("fan");
 		String fileName = (String) params.get("name");
 		String idol = (String) params.get("idol");
@@ -291,8 +294,9 @@ public class MyRecordingController {
 //		onApplicationStart();
 
 		try {
+			openVidu.fetch();
 			Recording recording = this.openVidu.startRecording(sessionId, properties);
-			System.out.println(recording);
+			log.info("레코딩 정보: " + recording);
 			HashMap<String, String> sessionIdMap = new HashMap<>();
 			sessionIdMap.put("sessionId", sessionId);
 //			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
@@ -300,6 +304,7 @@ public class MyRecordingController {
 			this.sessionIdRecordingsMap.put(sessionId, recording);
 			// recordingInfo entity에 저장
 			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, fileName, recording.getId());
+			log.info("여기까지 오면 레코딩 정보 저장 완료");
 			return new ResponseEntity<>(recording, HttpStatus.OK);
 		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -322,9 +327,10 @@ public class MyRecordingController {
 
 	}
 
-	@RequestMapping(value = "/recording/get", method = RequestMethod.GET)
+	@RequestMapping(value = "/recording/get", method = RequestMethod.POST)
 	public ResponseEntity<?> getRecording(@RequestBody Map<String, Object> params) {
-		Long fanMeetingId =Long.valueOf(params.get("fanMeetingId").toString());
+		String fanMeetingIdStr = params.getOrDefault("fanMeetingId", "1").toString();
+		Long fanMeetingId = Long.valueOf(fanMeetingIdStr.equals("undefined") ? "1" : fanMeetingIdStr);
 		String fan =(String) params.get("fan");
 		String idol = (String) params.get("idol");
 
@@ -338,7 +344,25 @@ public class MyRecordingController {
 		}
 	}
 
+	@RequestMapping(value = "/recordings/get", method = RequestMethod.POST)
+	public ResponseEntity<?> getRecordings(@RequestBody Map<String, Object> params) {
+		String fanMeetingIdStr = params.getOrDefault("fanMeetingId", "1").toString();
+		Long fanMeetingId = Long.valueOf(fanMeetingIdStr.equals("undefined") ? "1" : fanMeetingIdStr);
+		String fan =(String) params.get("fan");
 
+		try {
+			List<RecordingInfo> recordingInfos = recordingInfoService.findRecordingInfos(fanMeetingId, fan);
+			Map<String, Recording> recordings = new HashMap<>();
+			for (RecordingInfo recordingInfo : recordingInfos){
+				String idolNickname = recordingInfo.getIdol().getUserCommons().getNickname();
+				Recording recording = this.openVidu.getRecording(recordingInfo.getRecordingId());
+				recordings.put(idolNickname,recording);
+			}
+			return new ResponseEntity<>(recordings, HttpStatus.OK);
+		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
 
 	@RequestMapping(value = "/recording/delete", method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteRecording(@RequestBody Map<String, Object> params) {

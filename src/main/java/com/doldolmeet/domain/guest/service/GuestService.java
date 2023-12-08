@@ -48,6 +48,8 @@ public class GuestService {
                 .username(username)
                 .password(password)
                 .nickname(requestDto.getNickname())
+                .profileImgUrl(requestDto.getProfileImgUrl())
+                .thumbNailImgUrl(requestDto.getThumbNailImg())
                 .role(requestDto.getRole())
                 .build();
 
@@ -130,7 +132,7 @@ public class GuestService {
                 throw new CustomException(INVALID_PASSWORD);
             }
 
-            jwtToken = jwtUtil.createToken(username, fan.get().getUserCommons().getRole(), fan.get().getUserCommons().getNickname());
+            jwtToken = jwtUtil.createToken(username, fan.get().getUserCommons().getRole(), fan.get().getUserCommons().getNickname(), fan.get().getUserCommons().getProfileImgUrl(), fan.get().getUserCommons().getThumbNailImgUrl());
         }
 
         else if (idol.isPresent()) {
@@ -138,7 +140,7 @@ public class GuestService {
                 throw new CustomException(INVALID_PASSWORD);
             }
 
-            jwtToken = jwtUtil.createToken(username, idol.get().getUserCommons().getRole(), idol.get().getUserCommons().getNickname());
+            jwtToken = jwtUtil.createToken(username, idol.get().getUserCommons().getRole(), idol.get().getUserCommons().getNickname(), idol.get().getUserCommons().getProfileImgUrl(), idol.get().getUserCommons().getThumbNailImgUrl());
         }
 
         else if (admin.isPresent()) {
@@ -146,7 +148,7 @@ public class GuestService {
                 throw new CustomException(INVALID_PASSWORD);
             }
 
-            jwtToken = jwtUtil.createToken(username, admin.get().getUserCommons().getRole(), admin.get().getUserCommons().getNickname());
+            jwtToken = jwtUtil.createToken(username, admin.get().getUserCommons().getRole(), admin.get().getUserCommons().getNickname(), admin.get().getUserCommons().getProfileImgUrl(), admin.get().getUserCommons().getThumbNailImgUrl());
         }
 
         else {

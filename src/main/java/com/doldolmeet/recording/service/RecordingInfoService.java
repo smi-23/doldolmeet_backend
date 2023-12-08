@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -58,5 +59,13 @@ public class RecordingInfoService {
 
         Optional<RecordingInfo> recordingInfo = recordingInfoRepository.findByFanMeetingIdAndFanIdAndIdolId(fanMeetingId, fanId, idolId);
         return recordingInfo.get().getRecordingId();
+    }
+
+    public List<RecordingInfo> findRecordingInfos(Long fanMeetingId, String fan) {
+        Long fanId = fanRepository.findByUserCommonsUsername(fan).get().getId();
+        List<RecordingInfo> recordingInfos = recordingInfoRepository.findByFanMeetingIdAndFanId(fanMeetingId, fanId);
+
+
+        return recordingInfos;
     }
 }

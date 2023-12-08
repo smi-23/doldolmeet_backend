@@ -28,4 +28,7 @@ public class UserCommons {
 
     @Column
     private String profileImgUrl;
+
+    @Column
+    private String thumbNailImgUrl;
 }

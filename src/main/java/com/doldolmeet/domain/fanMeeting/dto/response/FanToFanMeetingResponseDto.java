@@ -20,4 +20,5 @@ public class FanToFanMeetingResponseDto {
     private Long orderNumber;
     private String chatRoomId;
     private String teamName;
+    private Long gameScore;
 }
