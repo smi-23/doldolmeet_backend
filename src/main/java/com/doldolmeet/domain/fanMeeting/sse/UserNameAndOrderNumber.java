@@ -10,4 +10,5 @@ import lombok.*;
 public class UserNameAndOrderNumber {
     private String username;
     private Long orderNumber;
+    private Long cnt;
 }

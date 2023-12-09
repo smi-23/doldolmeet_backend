@@ -1,6 +1,5 @@
 package com.doldolmeet.domain.fanMeeting.dto.response;
 
-import jakarta.persistence.Column;
 import lombok.*;
 
 @Getter
@@ -11,4 +10,8 @@ import lombok.*;
 public class FanMeetingRoomOrderDto {
     private String currentRoom; // current sessionId
     private String type;
+    private String motionType;
+    private String idolName;
+    private Long fanMeetingId;
+    private Long id;
 }

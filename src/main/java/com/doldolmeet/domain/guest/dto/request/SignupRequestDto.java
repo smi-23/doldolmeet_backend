@@ -21,4 +21,6 @@ public class SignupRequestDto {
 
     private String nickname;
     private String teamName;
+    private String profileImgUrl;
+    private String thumbNailImgUrl;
 }

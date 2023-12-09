@@ -123,4 +123,24 @@ public class FanMeetingController {
     public ResponseEntity<Message> closeFanMeeting(@PathVariable Long fanMeetingId, HttpServletRequest request) throws OpenViduJavaClientException, OpenViduHttpException {
         return fanMeetingService.closeFanMeeting(fanMeetingId, request);
     }
+
+    // 게임 점수 저장 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/gameScore")
+    public ResponseEntity<Message> saveGameScore(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.saveGameScore(fanMeetingId, request);
+    }
+
+    // 게임 점수 불러오기 API
+    @GetMapping("/fanMeetings/{fanMeetingId}/gameScore")
+    public ResponseEntity<Message> getGameScore(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getGameScore(fanMeetingId, request);
+    }
+
+    /**
+     * 팬미팅 아이디를 받아서 해당 팬미팅의 게임방 세션 아이디를 리턴하는 API
+     */
+    @GetMapping("/fanMeetings/{fanMeetingId}/get-game-room-id")
+    public ResponseEntity<Message> getGameRoomId(@PathVariable Long fanMeetingId, HttpServletRequest request) {
+        return fanMeetingService.getGameRoomSessionId(fanMeetingId, request);
+    }
 }

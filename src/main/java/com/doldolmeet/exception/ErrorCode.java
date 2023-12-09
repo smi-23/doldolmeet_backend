@@ -40,6 +40,7 @@ public enum ErrorCode {
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팀을 찾을 수 없습니다."),
     IDOL_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 아이돌을 찾을 수 없습니다."),
     FANMEETING_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팬미팅을  찾을 수 없습니다."),
+    FANMEETING_NOT_APPLIED(HttpStatus.NOT_FOUND, "팬미팅이 승인되지 않았습니다."),
     WAITROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 대기방을 찾을 수 없습니다."),
     //인증
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
@@ -62,7 +63,10 @@ public enum ErrorCode {
     INVALID_IDOLROOM_STATE(HttpStatus.BAD_REQUEST, "아이돌 방의 상태가 유효하지 않습니다."),
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 세션을 찾을 수 없습니다."),
     INVALID_FANMEETING_END(HttpStatus.BAD_REQUEST, "대기방의 다음 방이 없습니다."),
-    SSE_NOT_SENT_FIRST_IDOL_WAIT_ROOM(HttpStatus.INTERNAL_SERVER_ERROR, "첫번째 아이돌 대기방으로 이동하는 SSE 이벤트를 보내지 못했습니다.");
+    SSE_NOT_SENT_FIRST_IDOL_WAIT_ROOM(HttpStatus.INTERNAL_SERVER_ERROR, "첫번째 아이돌 대기방으로 이동하는 SSE 이벤트를 보내지 못했습니다."),
+    SLEEP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Thread.sleep() 실패"),
+    INVALID_USER_TYPE(HttpStatus.BAD_REQUEST, "유저 타입이 유효하지 않습니다."),
+    EMITTER_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SSE 이벤트를 보내지 못했습니다.");
 
     private final HttpStatus httpStatus;
     private final String data;
