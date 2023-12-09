@@ -8,6 +8,7 @@ import com.doldolmeet.domain.openvidu.service.OpenviduService;
 import com.doldolmeet.domain.users.idol.repository.IdolRepository;
 import com.doldolmeet.exception.CustomException;
 import com.doldolmeet.exception.ErrorCode;
+import com.doldolmeet.utils.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -175,6 +176,10 @@ public class SseController {
                                 throw new CustomException(SLEEP_FAILED);
                             }
 
+                            openvidu.fetch();
+                            Session session = openvidu.getActiveSession(sessionId);
+                            session.forceDisconnect(parseConnectionId(eventMessage));
+
                             SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                             return eventMessage;
                             // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
@@ -203,6 +208,10 @@ public class SseController {
                             } catch (InterruptedException e) {
                                 throw new CustomException(SLEEP_FAILED);
                             }
+
+                            openvidu.fetch();
+                            Session session = openvidu.getActiveSession(sessionId);
+                            session.forceDisconnect(parseConnectionId(eventMessage));
 
                             SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                             return eventMessage;
@@ -325,6 +334,20 @@ public class SseController {
         return eventMessage;
     }
 
+    // 해당 SSE 이벤트를 클라이언트에서 정상적으로 받았을 때 호출해서 db에 기록 저장하는 API
+    @PostMapping("/fanMeetings/{fanMeetingId}/sse/{username}/received")
+    public String eventReceived(@PathVariable Long fanMeetingId, @PathVariable String username, @RequestBody String event) {
+        log.info("SseController.eventReceived() 호출됨");
+        log.info("fanMeetingId: " + fanMeetingId);
+        log.info("username: " + username);
+        log.info("event: " + event);
+
+        return sseService.eventReceived(fanMeetingId, username, event);
+    }
+
+
+
+
     private String parseUsername(String eventMessage) {
         try {
             JsonNode jsonNode = objectMapper.readTree(eventMessage);
@@ -363,6 +386,18 @@ public class SseController {
             log.info("--------- Fan Meeting ID: " + fanMeetingId);
 
             return fanMeetingId;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String parseConnectionId(String eventMessage) {
+        try {
+            JsonNode jsonNode = objectMapper.readTree(eventMessage);
+            String connectionId = jsonNode.get("connectionId").asText();
+            log.info("--------- Connection ID: " + connectionId);
+
+            return connectionId;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

@@ -9,6 +9,7 @@ import com.doldolmeet.exception.CustomException;
 import io.openvidu.java.client.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,10 @@ public class SseService {
     // 팬미팅ID, 해당 방에 들어 있는 팬들의 username
     public static Map<Long, List<String>> gameRooms = new ConcurrentHashMap<>();
 
+    // SSE로 보낸 이벤트 저장하는 자료구조
+    // username에게 보낸 이벤트들, 그리고 전송여부 true/false
+    // fanMeetingId, username, eventName, isSent
+    public static Map<Long, Map<String, Map<String, Boolean>>> events = new ConcurrentHashMap<>();
 
     //Emitter 추가
     public SseEmitter createEmitter(Long fanMeetingId, String username) {
@@ -51,29 +56,32 @@ public class SseService {
 
         emitters.get(fanMeetingId).put(username, emitter);
 
+//        emitter.onCompletion(() -> {
+//            log.info("onCompletion callback");
+//            emitters.get(fanMeetingId).remove(username);    // 만료되면 리스트에서 삭제
+//        });
+////
+//        emitter.onTimeout(() -> {
+//            log.info("onTimeout callback");
+//            emitter.complete();
+//        });
+
+        emitter.onError(throwable -> {
+            log.info("onError callback");
+            log.info(throwable.getMessage());
+            emitter.complete();
+        });
+
         try {
+//            executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openvidu, idolRepository));
+//            // Shutdown the thread pool when done
+//            executorService.shutdown();
             emitter.send(SseEmitter.event()
                     .name("connect")
                     .data("connected!"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-//        emitter.onCompletion(() -> {
-//            log.info("onCompletion callback");
-//            emitters.get(fanMeetingId).remove(username);    // 만료되면 리스트에서 삭제
-//        });
-//
-//        emitter.onTimeout(() -> {
-//            log.info("onTimeout callback");
-//            emitter.complete();
-//        });
-//
-//        emitter.onError(throwable -> {
-//            log.info("onError callback");
-//            log.info(throwable.getMessage());
-//            emitter.complete();
-//        }
 
         log.info("SseService.addEmitter() called");
         return emitter;
@@ -101,7 +109,22 @@ public class SseService {
             throw new CustomException(NOT_FOUND_FANTOFANMEETING);
         }
 
-        waitingRooms.get(fanMeetingId).get(sessionId).add(new UserNameAndOrderNumber(username, ftfm.get().getOrderNumber()));
+        boolean flag = false;
+        if (waitingRooms.get(fanMeetingId).get(sessionId) != null) {
+            SortedSet<UserNameAndOrderNumber> users = waitingRooms.get(fanMeetingId).get(sessionId);
+            for (UserNameAndOrderNumber user : users) {
+                if (user.getUsername().equals(username)) {
+                    user.setCnt(user.getCnt() + 1);
+                    flag = true;
+                    break;
+                }
+            }
+        }
+
+        if (!flag) {
+            UserNameAndOrderNumber userInfo = new UserNameAndOrderNumber(username, ftfm.get().getOrderNumber(), 1L);
+            waitingRooms.get(fanMeetingId).get(sessionId).add(userInfo);
+        }
     }
 
     //waitingRoom에 waiter 제거
@@ -111,11 +134,16 @@ public class SseService {
         SortedSet<UserNameAndOrderNumber> watingFans = waitingRooms.get(fanMeetingId).get(sessionId);
 
         // sortedSet에서 해당 user의 UserNameAndOrderNumber를 찾아서 제거
+
         if (watingFans != null) {
             for (UserNameAndOrderNumber userNameAndOrderNumber : watingFans) {
                 if (userNameAndOrderNumber.getUsername().equals(username)) {
-                    watingFans.remove(userNameAndOrderNumber);
-                    break;
+                    userNameAndOrderNumber.setCnt(userNameAndOrderNumber.getCnt() - 1);
+
+                    if (userNameAndOrderNumber.getCnt() == 0) {
+                        watingFans.remove(userNameAndOrderNumber);
+                        break;
+                    }
                 }
             }
         }
@@ -168,5 +196,19 @@ public class SseService {
         log.info("waitingRoom : " + waitingRooms);
         log.info("gameRoom : " + gameRooms);
         log.info("isIdolsEntered : " + isIdolsEntered);
+    }
+
+    @Transactional
+    public String eventReceived(Long fanMeetingId, String username, String event) {
+        if (SseService.events.get(fanMeetingId) == null) {
+            SseService.events.put(fanMeetingId, new ConcurrentHashMap<>());
+        }
+
+        if (SseService.events.get(fanMeetingId).get(username) == null) {
+            SseService.events.get(fanMeetingId).put(username, new ConcurrentHashMap<>());
+        }
+
+        SseService.events.get(fanMeetingId).get(username).put(event, true);
+        return "이벤트를 잘 받았다는 메시지가 서버에게 잘 전송됨";
     }
 }
