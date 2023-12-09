@@ -68,7 +68,6 @@ public class MyTask implements Runnable {
             String sessionId = jsonNode.get("sessionId").asText();
             String connectionId = jsonNode.get("connectionId").asText();
 
-            String gameType = parseGameType(body);
             String username = parseUsername(body);
             Long fanMeetingId = parseFanMeetingId(body);
             String idolName = parseIdolName(body);
