@@ -166,7 +166,7 @@ public class SseController {
                         params.put("idolNickName", currRoomOrder.getNickname());
                         params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
                         params.put("motionType", nextRoomOrder.getMotionType());
-                        params.put("gameType", nextRoomOrder.getGameType());
+//                        params.put("gameType", nextRoomOrder.getGameType());
 
                         try {
                             log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
@@ -198,7 +198,7 @@ public class SseController {
                         params.put("idolNickName", currRoomOrder.getNickname());
                         params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
                         params.put("motionType", nextRoomOrder.getMotionType());
-                        params.put("gameType", nextRoomOrder.getGameType());
+//                        params.put("gameType", nextRoomOrder.getGameType());
 
                         try {
                             log.info("해당 아이돌 방 커넥션 1개인데 일단 들여보냄");
@@ -279,13 +279,22 @@ public class SseController {
                 FanMeetingRoomOrder prevRoomOrder = prevFanMeetingRoomOrderOpt.get();
 
 
+                if (SseService.waitingRooms.get(fanMeetingId) == null) {
+                    SseService.waitingRooms.put(fanMeetingId, new ConcurrentHashMap<>());
+                }
+
+                // 해당 대기방 객체가 없으면 만들어주고 리턴.
                 if (SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom()) == null) {
+                    Comparator comparator = new OrderNumberComparator();
+                    SortedSet<UserNameAndOrderNumber> sortedSet = new TreeSet(comparator);
+                    SseService.waitingRooms.get(fanMeetingId).put(sessionId, sortedSet);
                     throw new CustomException(WAITROOM_NOT_FOUND);
                 }
 
+                // 자기 대기방에 아무도 없으면 그냥 리턴.
                 SortedSet<UserNameAndOrderNumber> waitingRoom = SseService.waitingRooms.get(fanMeetingId).get(prevRoomOrder.getCurrentRoom());
                 if (waitingRoom.isEmpty()) {
-                    throw new CustomException(WAITROOM_FAN_NOT_FOUND);
+                    return eventMessage;
                 }
 
                 String newUsername = waitingRoom.first().getUsername();
@@ -304,7 +313,6 @@ public class SseController {
                     params.put("idolNickName", prevRoomOrder.getNickname());
                     params.put("roomThumbnail", prevRoomOrder.getRoomThumbnail());
                     params.put("motionType", nextRoomOrder.getMotionType());
-                    params.put("gameType", nextRoomOrder.getGameType());
 
                     SseService.emitters.get(fanMeetingId).get(newUsername).send(SseEmitter.event().name("moveToIdolRoom").data(params));
                 } catch (IOException e) {
