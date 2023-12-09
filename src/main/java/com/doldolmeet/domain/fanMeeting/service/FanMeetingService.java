@@ -115,7 +115,7 @@ public class FanMeetingService {
                     .roomThumbnail(idols.get(i/2).getUserCommons().getThumbNailImgUrl())
                     .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
                     .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
-                    .gameType(""+cnt)
+//                    .gameType(""+cnt)
                     .build();
 
             if (i % 2 == 1) {
@@ -134,7 +134,7 @@ public class FanMeetingService {
                 .roomThumbnail("gameRoomUrl")
                 .type("gameRoom")
                 .motionType("noMotion")
-                .gameType("noGameType")
+//                .gameType("noGameType")
                 .build();
 
         fanMeeting.getFanMeetingRoomOrders().get(sz).setNextRoom(roomOrder.getCurrentRoom());

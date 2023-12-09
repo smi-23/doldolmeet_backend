@@ -55,6 +55,7 @@ public class MyTask implements Runnable {
         try {
             // 게임 시작 전까지 자기
             Thread.sleep(timeLimit - endNotice); // 45초 대화
+            log.info("---------아이돌방 쓰레드 안꺼지고 계속 도는 중: {}", body);
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -98,7 +99,15 @@ public class MyTask implements Runnable {
 
             MyRecordingController.sessionRecordings.remove(sessionId);
             // 연결 끊기
-            session.forceDisconnect(connectionId);
+
+            try {
+                session.forceDisconnect(connectionId);
+                log.info("--------- 연결 끊기 성공, 커넥션ID: {}", connectionId);
+            } catch (Exception e) {
+                log.info("--------- 연결 끊기 실패, 커넥션ID: {}", connectionId);
+                log.error("--------- 연결 끊기 실패, 에러메시지: {}", e.getMessage());
+            }
+
             Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);
             // 없으면 예외
             if (currFanMeetingRoomOrderOpt.isEmpty()) {
@@ -114,7 +123,9 @@ public class MyTask implements Runnable {
             params.put("currRoomType", currRoomOrder.getType());
             params.put("nextRoomType", nextRoomOrder.getType());
 
-            emitter.send(SseEmitter.event().name("moveToWaitRoom").data(params));
+            log.info("-----newEmitter: " + SseService.emitters.get(fanMeetingId).get(username));
+            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToWaitRoom").data(params));
+//            emitter.send(SseEmitter.event().name("moveToWaitRoom").data(params));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } catch (OpenViduJavaClientException e) {
