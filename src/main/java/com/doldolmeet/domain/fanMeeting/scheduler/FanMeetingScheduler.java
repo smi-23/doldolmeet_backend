@@ -28,6 +28,7 @@ import static com.doldolmeet.exception.ErrorCode.*;
 @Slf4j
 public class FanMeetingScheduler {
     private final FanMeetingRepository fanMeetingRepository;
+    private final SseService sseService;
 
     @Scheduled(fixedRate = 10 * 1000) // 10초마다 실행
     @Transactional
@@ -79,6 +80,15 @@ public class FanMeetingScheduler {
                     UserNameAndOrderNumber userInfo = SseService.waitingRooms.get(fanMeeting.getId()).get(mainRoomId).first();
 
                     String username = userInfo.getUsername();
+
+                    if (SseService.emitters.get(fanMeeting.getId()).get(username) == null) {
+                        // 팬 나가서 에미터 사라졌는데 아직 waitingRooms에 남아있는 경우
+                        log.error("팬이 나가서 에미터 삭제됐거나, 에미터 재연결중 팬: {}, 방Id: {}", username, mainRoomId);
+//                        log.info("메인 대기방에서 UserNameAndOrderNumber 삭제");
+//                        sseService.removeWaiter(username, fanMeeting.getId(), mainRoomId);
+                        continue;
+                    }
+
                     SseEmitter emitter = SseService.emitters.get(fanMeeting.getId()).get(username);
 
                     Map<String, String> params = new HashMap<>();
@@ -91,16 +101,19 @@ public class FanMeetingScheduler {
                         // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
                         // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
 
+                    } catch (IllegalStateException e) {
+                        log.error("MainWaitRoom Scheduler: emitter가 이미 종료되었습니다. {}", e.getMessage());
+                        if (SseService.emitters.get(fanMeeting.getId()).get(username) != null) {
+                            SseService.emitters.get(fanMeeting.getId()).remove(username);
+                        }
                     } catch (IOException e) {
-                        throw new CustomException(SSE_NOT_SENT_FIRST_IDOL_WAIT_ROOM);
+                        log.error("-------- moveToFirstIdolWaitRoom 이벤트 발생 실패");
+                        if (SseService.emitters.get(fanMeeting.getId()).get(username) != null) {
+                            SseService.emitters.get(fanMeeting.getId()).remove(username);
+                        }
                     }
-
                     log.info(fanMeeting.getFanMeetingName() + "스케쥴링 완료");
                 }
-//            }
-//            else {
-//                log.info("FanMeeting start time: " + fanMeeting.getStartTime() + "아직 시작시간 안됨.");
-//            }
         }
     }
 }

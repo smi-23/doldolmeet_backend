@@ -37,14 +37,16 @@ public class MyTask implements Runnable {
     private FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
     private OpenVidu openvidu;
     private IdolRepository idolRepository;
+    private SseService sseService;
 
-    public MyTask(String body, OpenviduService openviduService, ObjectMapper objectMapper, FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository, OpenVidu openvidu, IdolRepository idolRepository) {
+    public MyTask(String body, OpenviduService openviduService, ObjectMapper objectMapper, FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository, OpenVidu openvidu, IdolRepository idolRepository, SseService sseService) {
         this.body = body;
         this.openviduService = openviduService;
         this.objectMapper = objectMapper;
         this.fanMeetingRoomOrderRepository = fanMeetingRoomOrderRepository;
         this.openvidu = openvidu;
         this.idolRepository = idolRepository;
+        this.sseService = sseService;
     }
 
     @Override
@@ -62,83 +64,111 @@ public class MyTask implements Runnable {
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
+
+        JsonNode jsonNode = null;
         try {
-            JsonNode jsonNode = objectMapper.readTree(body);
-            log.info("jsonNode : " + jsonNode);
-
-            String sessionId = jsonNode.get("sessionId").asText();
-            String connectionId = jsonNode.get("connectionId").asText();
-
-            String username = parseUsername(body);
-            Long fanMeetingId = parseFanMeetingId(body);
-            String idolName = parseIdolName(body);
-
-            Idol idol = idolRepository.findByUserCommonsNickname(idolName).orElseThrow(() -> new CustomException(IDOL_NOT_FOUND));
-            SseEmitter emitter = SseService.emitters.get(fanMeetingId).get(username);
-            SseEmitter idolEmitter = SseService.emitters.get(fanMeetingId).get(idol.getUserCommons().getUsername());
-
-            log.info("idolEmitter : " + idolEmitter);
-            log.info("fanEmitter : " + emitter);
-            // 종료 알림을 보내기
-            emitter.send(SseEmitter.event().name("endNotice").data(new HashMap<>()));
-            idolEmitter.send(SseEmitter.event().name("idolEndNotice").data(new HashMap<>()));
-
-            Thread.sleep(endNotice); // 종료알림 보내고 10초 후 끝
-
-            log.info("-------종료되는 connectionId : " + connectionId);
-            Session session = openviduService.getSession(sessionId);
-
-            String recordingId = MyRecordingController.sessionIdRecordingsMap.get(sessionId).getId();
-
-            try {
-                this.openvidu.stopRecording(recordingId);
-            } catch (OpenViduJavaClientException e) {
-                log.error("--------- 녹화 종료 실패", e);
-                throw new RuntimeException(e);
-            }
-
-            MyRecordingController.sessionRecordings.remove(sessionId);
-            // 연결 끊기
-
-            try {
-                session.forceDisconnect(connectionId);
-                log.info("--------- 연결 끊기 성공, 커넥션ID: {}", connectionId);
-            } catch (Exception e) {
-                log.info("--------- 연결 끊기 실패, 커넥션ID: {}", connectionId);
-                log.error("--------- 연결 끊기 실패, 에러메시지: {}", e.getMessage());
-            }
-
-            Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);
-            // 없으면 예외
-            if (currFanMeetingRoomOrderOpt.isEmpty()) {
-                throw new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER);
-            }
-            FanMeetingRoomOrder currRoomOrder = currFanMeetingRoomOrderOpt.get();
-
-            // 다음 방으로 이동
-            FanMeetingRoomOrder nextRoomOrder = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, currRoomOrder.getNextRoom()).orElseThrow(() -> new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER));
-
-            Map<String, String> params = new HashMap<>();
-            params.put("nextRoomId", currRoomOrder.getNextRoom());
-            params.put("currRoomType", currRoomOrder.getType());
-            params.put("nextRoomType", nextRoomOrder.getType());
-
-            log.info("-----newEmitter: " + SseService.emitters.get(fanMeetingId).get(username));
-            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToWaitRoom").data(params));
-//            emitter.send(SseEmitter.event().name("moveToWaitRoom").data(params));
+            jsonNode = objectMapper.readTree(body);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-        } catch (OpenViduJavaClientException e) {
-            throw new RuntimeException(e);
-        } catch (OpenViduHttpException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        }
+
+        log.info("jsonNode : " + jsonNode);
+
+        String sessionId = jsonNode.get("sessionId").asText();
+        String connectionId = jsonNode.get("connectionId").asText();
+
+        String username = parseUsername(body);
+        Long fanMeetingId = parseFanMeetingId(body);
+        String idolName = parseIdolName(body);
+
+        Idol idol = idolRepository.findByUserCommonsNickname(idolName).orElseThrow(() -> new CustomException(IDOL_NOT_FOUND));
+
+        SseEmitter fanEmitter;
+        if (SseService.emitters.get(fanMeetingId).get(username) == null) {
+            log.info("--------- Fan의 emitter가 null임, 아이돌방: {}", idol.getUserCommons().getNickname());
+        } else {
+            fanEmitter = SseService.emitters.get(fanMeetingId).get(username);
+            log.info("fanEmitter : " + fanEmitter);
+
+            // 종료 알림을 보내기
+            try {
+                fanEmitter.send(SseEmitter.event().name("endNotice").data(new HashMap<>()));
+            } catch (IOException e) {
+                log.error("-------- 팬에게 종료 알림 보내기 실패, FAN: {}", username);
+            }
+        }
+
+        SseEmitter idolEmitter;
+        if (SseService.emitters.get(fanMeetingId).get(idol.getUserCommons().getUsername()) == null) {
+            log.info("--------- 아이돌의 emitter가 null임, 아이돌방: {}", idol.getUserCommons().getNickname());
+        } else {
+            idolEmitter = SseService.emitters.get(fanMeetingId).get(idol.getUserCommons().getUsername());
+            log.info("idolEmitter : " + idolEmitter);
+            // 종료 알림을 보내기
+            try {
+                idolEmitter.send(SseEmitter.event().name("idolEndNotice").data(new HashMap<>()));
+            } catch (IOException e) {
+                log.error("-------- 아이에게 종료 알림 보내기 실패, IDOL: {}", idol.getUserCommons().getUsername());
+            }
+        }
+
+        try {
+            Thread.sleep(endNotice); // 종료알림 보내고 10초 후 끝
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        log.info("Task " + " is running on thread " + Thread.currentThread().getName());
 
+        log.info("-------종료되는 connectionId: " + connectionId);
+        Session session = null;
+        try {
+            session = openviduService.getSession(sessionId);
+        } catch (OpenViduJavaClientException | OpenViduHttpException e) {
+            throw new RuntimeException("--------- 세션 조회 실패", e);
+        }
+        String recordingId = MyRecordingController.sessionIdRecordingsMap.get(sessionId).getId();
+
+        try {
+            this.openvidu.stopRecording(recordingId);
+        } catch (OpenViduHttpException | OpenViduJavaClientException e) {
+            log.error("--------- 녹화 종료 실패", e);
+//            throw new RuntimeException(e);
+        }
+
+        MyRecordingController.sessionRecordings.remove(sessionId);
+        // 연결 끊기
+
+        try {
+            session.forceDisconnect(connectionId);
+            log.info("--------- 연결 끊기 성공, 커넥션ID: {}", connectionId);
+        } catch (Exception e) {
+            log.info("--------- 연결 끊기 실패, 커넥션ID: {}", connectionId);
+            log.error("--------- 연결 끊기 실패, 에러메시지: {}", e.getMessage());
+        }
+
+        Optional<FanMeetingRoomOrder> currFanMeetingRoomOrderOpt = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, sessionId);
+        // 없으면 예외
+        if (currFanMeetingRoomOrderOpt.isEmpty()) {
+            throw new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER);
+        }
+        FanMeetingRoomOrder currRoomOrder = currFanMeetingRoomOrderOpt.get();
+
+        // 다음 방으로 이동
+        FanMeetingRoomOrder nextRoomOrder = fanMeetingRoomOrderRepository.findByFanMeetingIdAndCurrentRoom(fanMeetingId, currRoomOrder.getNextRoom()).orElseThrow(() -> new CustomException(NOT_FOUND_FANMEETING_ROOM_ORDER));
+
+        Map<String, String> params = new HashMap<>();
+        params.put("nextRoomId", currRoomOrder.getNextRoom());
+        params.put("currRoomType", currRoomOrder.getType());
+        params.put("nextRoomType", nextRoomOrder.getType());
+
+        log.info("-----newEmitter: " + SseService.emitters.get(fanMeetingId).get(username));
+
+//        try {
+//            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToWaitRoom").data(params));
+//        } catch (IOException e) {
+//            throw new RuntimeException("--------- moveToWaitRoom 이벤트 보내기 실패", e);
+//        }
+        sseService.sendEvent(fanMeetingId, username, "moveToWaitRoom", params);
+        log.info("Task " + " is running on thread " + Thread.currentThread().getName());
     }
 
     private String parseIdolName(String eventMessage) {

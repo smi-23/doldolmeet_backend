@@ -44,13 +44,14 @@ public class SseController {
 
 
     @GetMapping(path = "/fanMeetings/{fanMeetingId}/sse/{username}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter createEmitter(@PathVariable Long fanMeetingId, @PathVariable String username) {
+    public SseEmitter createEmitter(@PathVariable Long fanMeetingId, @PathVariable String username, @RequestHeader(name = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         // Add the emitter to a list of subscribers or handle it in another way
         log.info("SseController.subscribe() 호출됨");
         log.info("fanMeetingId: " + fanMeetingId);
         log.info("username: " + username);
+        log.info("lastEventId: " + lastEventId);
 
-        return sseService.createEmitter(fanMeetingId, username);
+        return sseService.createEmitter(fanMeetingId, username, lastEventId);
     }
 
     @Async
@@ -349,7 +350,9 @@ public class SseController {
 
             // 참가자가 게임방에서 나갔을 때
             else if (eventMessage.contains("participantLeft") && eventMessage.contains("gameRoom")) {
-                SseService.gameRooms.get(fanMeetingId).remove(username);
+                if (SseService.gameRooms.get(fanMeetingId).contains(username)) {
+                    SseService.gameRooms.get(fanMeetingId).remove(username);
+                }
             }
         }
 
@@ -436,7 +439,7 @@ public class SseController {
 //        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 //        System.out.println(openvidu);
 //        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openvidu, idolRepository));
+        executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openvidu, idolRepository, sseService));
         // Shutdown the thread pool when done
         executorService.shutdown();
     }

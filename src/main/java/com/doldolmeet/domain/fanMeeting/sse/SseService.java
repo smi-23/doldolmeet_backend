@@ -42,45 +42,75 @@ public class SseService {
     // 팬미팅ID, 해당 방에 들어 있는 팬들의 username
     public static Map<Long, List<String>> gameRooms = new ConcurrentHashMap<>();
 
+    // username을 통해서 event 리스트 찾고, lastEventId로 그 이후 이벤트들만 다시 보내기
+    public static Map<String, List<SseEvent>> sseEvents = new ConcurrentHashMap<>();
+
     // SSE로 보낸 이벤트 저장하는 자료구조
     // username에게 보낸 이벤트들, 그리고 전송여부 true/false
     // fanMeetingId, username, eventName, isSent
     public static Map<Long, Map<String, Map<String, Boolean>>> events = new ConcurrentHashMap<>();
 
     //Emitter 추가
-    public SseEmitter createEmitter(Long fanMeetingId, String username) {
+    public SseEmitter createEmitter(Long fanMeetingId, String username, String lastEventId) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+//        SseEmitter emitter = new SseEmitter; // 10초
         if (emitters.get(fanMeetingId) == null) {
             emitters.put(fanMeetingId, new ConcurrentHashMap<>());
         }
 
         emitters.get(fanMeetingId).put(username, emitter);
 
-//        emitter.onCompletion(() -> {
-//            log.info("onCompletion callback");
-//            emitters.get(fanMeetingId).remove(username);    // 만료되면 리스트에서 삭제
-//        });
-////
-//        emitter.onTimeout(() -> {
-//            log.info("onTimeout callback");
-//            emitter.complete();
-//        });
-
-        emitter.onError(throwable -> {
-            log.info("onError callback");
-            log.info(throwable.getMessage());
+//
+        // 타임아웃 발생시 complete() 호출 -> onCompletion() 호출됨.
+        emitter.onTimeout(() -> {
+            log.info("onTimeout callback");
             emitter.complete();
         });
 
+        // 에러 발생시 complete() 호출 -> onCompletion() 호출됨.
+        emitter.onError(throwable -> {
+            log.info("onError callback");
+            log.info("onError Message: {}", throwable.getMessage());
+//            throwable.printStackTrace();
+            emitter.complete();
+        });
+
+        // 에미터 삭제됨.
+        emitter.onCompletion(() -> {
+            log.info("onCompletion callback");
+            if (emitters.get(fanMeetingId) != null && emitters.get(fanMeetingId).get(username) != null) {
+                emitters.get(fanMeetingId).remove(username);    // 만료되면 리스트에서 삭제
+            }
+        });
+
         try {
-//            executorService.execute(new MyTask(body, openviduService, objectMapper, fanMeetingRoomOrderRepository, openvidu, idolRepository));
-//            // Shutdown the thread pool when done
-//            executorService.shutdown();
             emitter.send(SseEmitter.event()
                     .name("connect")
+                    .id(username+System.currentTimeMillis())
                     .data("connected!"));
         } catch (IOException e) {
+            log.error("connect Event sent failed. {}", e.getMessage());
             throw new RuntimeException(e);
+        }
+
+        sseEvents.put(username, new ArrayList<>());
+
+        if (!lastEventId.isBlank()) {
+            // lastEventId가 있으면, 그 이후의 이벤트들만 다시 보내기
+            // lastEventID보다 큰 이벤트만 필터링. lastEventId < X 인 것들만.
+
+            for (SseEvent sseEvent : sseEvents.get(username)) {
+                if (sseEvent.getId().compareTo(lastEventId) > 0) {
+                    try {
+                        emitter.send(SseEmitter.event()
+                                .name(sseEvent.getName())
+                                .id(sseEvent.getId())
+                                .data(sseEvent.getData()));
+                    } catch (IOException e) {
+                        log.error("lastEventId 이후의 이벤트 다시 보내기 실패. {}", sseEvent.getName());
+                    }
+                }
+            }
         }
 
         log.info("SseService.addEmitter() called");
@@ -175,20 +205,30 @@ public class SseService {
 //            System.out.println("@@@@@@@@@ 4 @@@@@@@@@");
             // mainwaitingroom에 있는 사람들에게 이벤트를 보내서, 자기가 몇번째 대기자인지 알려준다.
             waitersInMainWaitingRoom.forEach(waiter -> {
-                try {
-                    Long myOrder = waiter.getOrderNumber();
-                    // myOrder 보다 작은 orderNumber를 가진 사람들의 수를 구한다.
-                    Long numberOfPeopleAhead = waitersInMainWaitingRoom.stream().filter(userNameAndOrderNumber -> userNameAndOrderNumber.getOrderNumber() < myOrder).count();
-                    emitters.get(fanMeetingId).get(waiter.getUsername()).send(SseEmitter.event().name("numberOfPeopleAhead").data(numberOfPeopleAhead));
+                Long myOrder = waiter.getOrderNumber();
+                // myOrder 보다 작은 orderNumber를 가진 사람들의 수를 구한다.
+                Long numberOfPeopleAhead = waitersInMainWaitingRoom.stream().filter(userNameAndOrderNumber -> userNameAndOrderNumber.getOrderNumber() < myOrder).count();
+
+                if (emitters.get(fanMeetingId).get(waiter.getUsername()) == null) {
+                    log.info("팬의 emitter가 null임. 재접속이거나 나간 것.");
+//                    if (waitingRooms.get(fanMeetingId).get(mainWaitingRoomId).contains(waiter)) {
+//                        removeWaiter(waiter.getUsername(), fanMeetingId, mainWaitingRoomId);
+//                    }
+                } else {
+                    sendEvent(fanMeetingId, waiter.getUsername(), "numberOfPeopleAhead", numberOfPeopleAhead);
                     System.out.println("waiter" + waiter.getUsername() + "numberOfPeopleAhead : " + numberOfPeopleAhead);
-                } catch (IOException e) {
-                    e.printStackTrace();
+//                        emitters.get(fanMeetingId).get(waiter.getUsername()).send(SseEmitter.event().name("numberOfPeopleAhead").data(numberOfPeopleAhead));
                 }
+
+//                catch (IOException e) {
+//                    log.info("PeopleAhead: send 실패. {}", e.getMessage());
+//                    if (emitters.get(fanMeetingId).get(waiter.getUsername()) != null) {
+//                        emitters.get(fanMeetingId).remove(waiter.getUsername());
+//                    }
+//                }
             });
         }
     }
-
-
 
     @Scheduled(initialDelay = 3000, fixedRate = 3000)
     public void printemitter() {
@@ -210,5 +250,39 @@ public class SseService {
 
         SseService.events.get(fanMeetingId).get(username).put(event, true);
         return "이벤트를 잘 받았다는 메시지가 서버에게 잘 전송됨";
+    }
+
+    public void sendEvent(Long fanMeetingId, String username, String eventName, Object data) {
+        SseEvent sseEvent = new SseEvent();
+        sseEvent.setUsername(username);
+        sseEvent.setId(username + System.currentTimeMillis());
+        sseEvent.setName(eventName);
+        sseEvent.setData(data);
+
+        SseService.sseEvents.get(username).add(sseEvent);
+
+        if (SseService.emitters.get(fanMeetingId) == null || SseService.emitters.get(fanMeetingId).get(username) == null) {
+            log.error("SSE send 실패. 유저 이름: {}, 이벤트 이름: {}", username, eventName);
+        }
+
+        try {
+            emitters.get(fanMeetingId).get(username).send(
+                    SseEmitter.event()
+                            .name(eventName)
+                            .id(sseEvent.getId())
+                            .data(data)
+            );
+        } catch (IOException e) {
+            log.error("SSE Event send 실패. 유저 이름: {}, 이벤트 이름: {}, 에러 메시지: {}", username, eventName, e.getMessage());
+            if (SseService.emitters.get(fanMeetingId).get(username) != null) {
+                SseService.emitters.get(fanMeetingId).remove(username);
+            }
+//            return username + "에게" + eventName + "이벤트 보내기 실패";
+        } catch (IllegalStateException e) {
+            log.error("emitter가 이미 종료되었습니다. 유저이름: {}, 이벤트 이름: {}, 에러 메시지: {}",username, eventName, e.getMessage());
+            if (emitters.get(fanMeetingId).get(username) != null) {
+                emitters.get(fanMeetingId).remove(username);
+            }
+        }
     }
 }
