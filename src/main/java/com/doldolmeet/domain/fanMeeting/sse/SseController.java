@@ -256,6 +256,7 @@ public class SseController {
                     //
                     else {
                         log.info("(해당 아이돌 방에 Admin만 있는 경우), (Admin과 Idol이 있고, FAN 이 없는 경우) 를 제외한 경우");
+                        sseService.addwaiter(username, fanMeetingId, sessionId);
                         throw new CustomException(INVALID_IDOLROOM_STATE);
                     }
                 }
