@@ -67,7 +67,8 @@ public enum ErrorCode {
     SLEEP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Thread.sleep() 실패"),
     INVALID_USER_TYPE(HttpStatus.BAD_REQUEST, "유저 타입이 유효하지 않습니다."),
     EMITTER_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SSE 이벤트를 보내지 못했습니다."),
-    THREAD_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "쓰레드 인터럽트되어 SLEEP 중단");
+    THREAD_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "쓰레드 인터럽트되어 SLEEP 중단"),
+    FANMEETING_ROOMS_NOT_CREATED(HttpStatus.NOT_FOUND, "팬미팅 방이 생성되지 않았습니다.");
 
     private final HttpStatus httpStatus;
     private final String data;

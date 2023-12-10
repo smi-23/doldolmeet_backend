@@ -53,6 +53,7 @@ public class RecordingInfoService {
         recordingInfoRepository.save(recordingInfo);
     }
 
+    @Transactional
     public String findRecordingId(Long fanMeetingId, String fan, String idol) {
         Long fanId = fanRepository.findByUserCommonsUsername(fan).get().getId();
         Long idolId = idolRepository.findByUserCommonsNickname(idol).get().getId();
@@ -61,11 +62,12 @@ public class RecordingInfoService {
         return recordingInfo.get().getRecordingId();
     }
 
+    @Transactional
     public List<RecordingInfo> findRecordingInfos(Long fanMeetingId, String fan) {
         Long fanId = fanRepository.findByUserCommonsUsername(fan).get().getId();
         List<RecordingInfo> recordingInfos = recordingInfoRepository.findByFanMeetingIdAndFanId(fanMeetingId, fanId);
 
-
+        log.info("Fan: {}, recordingInfos: {}", fan, recordingInfos);
         return recordingInfos;
     }
 }

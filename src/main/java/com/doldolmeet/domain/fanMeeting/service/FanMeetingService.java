@@ -266,17 +266,22 @@ public class FanMeetingService {
 
 //        FanMeeting fanMeeting = fanMeetingOpt.get();
 
-        FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
-                .id(fanMeeting.getId())
-                .imgUrl(fanMeeting.getFanMeetingImgUrl())
-                .title(fanMeeting.getFanMeetingName())
-                .startTime(fanMeeting.getStartTime())
-                .endTime(fanMeeting.getEndTime())
-                .chatRoomId(fanMeeting.getChatRoomId())
-                .teamName(fanMeeting.getTeam().getTeamName())
-                .build();
+        if (fanMeeting.getIsRoomsCreated()) {
+            FanMeetingResponseDto responseDto = FanMeetingResponseDto.builder()
+                    .id(fanMeeting.getId())
+                    .imgUrl(fanMeeting.getFanMeetingImgUrl())
+                    .title(fanMeeting.getFanMeetingName())
+                    .startTime(fanMeeting.getStartTime())
+                    .endTime(fanMeeting.getEndTime())
+                    .chatRoomId(fanMeeting.getChatRoomId())
+                    .teamName(fanMeeting.getTeam().getTeamName())
+                    .build();
 
-        return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);
+            return new ResponseEntity<>(new Message("나의 예정된 팬미팅 중 가장 최신 팬미팅 받기 성공", responseDto), HttpStatus.OK);
+        }
+        else {
+            throw new CustomException(FANMEETING_ROOMS_NOT_CREATED);
+        }
     }
 
 
