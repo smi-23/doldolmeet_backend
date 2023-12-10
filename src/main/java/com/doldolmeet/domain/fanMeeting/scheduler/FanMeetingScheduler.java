@@ -95,23 +95,10 @@ public class FanMeetingScheduler {
                     params.put("nextRoomId", roomOrder.getNextRoom());
                     params.put("currRoomType", roomOrder.getType());
 
-                    try {
-                        emitter.send(SseEmitter.event().name("moveToFirstIdolWaitRoom").data(params));
-                        log.info("-------- moveToFirstIdolWaitRoom 이벤트 발생");
-                        // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
-                        // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
+                    sseService.sendEvent(fanMeeting.getId(), username, "moveToFirstIdolWaitRoom", params);
+                    // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
+                    // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
 
-                    } catch (IllegalStateException e) {
-                        log.error("MainWaitRoom Scheduler: emitter가 이미 종료되었습니다. {}", e.getMessage());
-                        if (SseService.emitters.get(fanMeeting.getId()).get(username) != null) {
-                            SseService.emitters.get(fanMeeting.getId()).remove(username);
-                        }
-                    } catch (IOException e) {
-                        log.error("-------- moveToFirstIdolWaitRoom 이벤트 발생 실패");
-                        if (SseService.emitters.get(fanMeeting.getId()).get(username) != null) {
-                            SseService.emitters.get(fanMeeting.getId()).remove(username);
-                        }
-                    }
                     log.info(fanMeeting.getFanMeetingName() + "스케쥴링 완료");
                 }
         }

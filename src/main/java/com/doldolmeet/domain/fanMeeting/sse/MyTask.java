@@ -24,9 +24,7 @@ import java.util.Optional;
 
 import io.openvidu.java.client.OpenVidu;
 
-
-import static com.doldolmeet.exception.ErrorCode.IDOL_NOT_FOUND;
-import static com.doldolmeet.exception.ErrorCode.NOT_FOUND_FANMEETING_ROOM_ORDER;
+import static com.doldolmeet.exception.ErrorCode.*;
 
 @Slf4j
 public class MyTask implements Runnable {
@@ -60,7 +58,7 @@ public class MyTask implements Runnable {
             log.info("---------아이돌방 쓰레드 안꺼지고 계속 도는 중: {}", body);
 
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new CustomException(THREAD_INTERRUPTED);
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -91,11 +89,7 @@ public class MyTask implements Runnable {
             log.info("fanEmitter : " + fanEmitter);
 
             // 종료 알림을 보내기
-            try {
-                fanEmitter.send(SseEmitter.event().name("endNotice").data(new HashMap<>()));
-            } catch (IOException e) {
-                log.error("-------- 팬에게 종료 알림 보내기 실패, FAN: {}", username);
-            }
+            sseService.sendEvent(fanMeetingId, username, "endNotice", new HashMap<>());
         }
 
         SseEmitter idolEmitter;
@@ -105,17 +99,13 @@ public class MyTask implements Runnable {
             idolEmitter = SseService.emitters.get(fanMeetingId).get(idol.getUserCommons().getUsername());
             log.info("idolEmitter : " + idolEmitter);
             // 종료 알림을 보내기
-            try {
-                idolEmitter.send(SseEmitter.event().name("idolEndNotice").data(new HashMap<>()));
-            } catch (IOException e) {
-                log.error("-------- 아이에게 종료 알림 보내기 실패, IDOL: {}", idol.getUserCommons().getUsername());
-            }
+            sseService.sendEvent(fanMeetingId, idol.getUserCommons().getUsername(), "idolEndNotice", new HashMap<>());
         }
 
         try {
             Thread.sleep(endNotice); // 종료알림 보내고 10초 후 끝
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new CustomException(THREAD_INTERRUPTED);
         }
 
         log.info("-------종료되는 connectionId: " + connectionId);

@@ -93,29 +93,18 @@ public class SseController {
                 Integer teamSize = fanMeeting.getTeam().getTeamSize();
 
                 if (SseService.isIdolsEntered.get(fanMeetingId).size() == teamSize && SseService.isIdolsEntered.get(fanMeetingId).values().stream().allMatch(isEntered -> isEntered)) {
-                    try {
+//                    try {
                         log.info("모두 들어왔으니까 팬들에게 다 들어왔다고 알려주기");
                         // TODO: 지금은 해당 팬미팅에 접속한 모든 팬들에게 다 들어왔다고 알려주는데, 나중에는 해당 아이돌 방에 들어온 팬들에게만 알려주는게 좋을듯.
 
-                        SseService.gameRooms.get(fanMeetingId).forEach(fanUsername -> {
-                            try {
-                                SseService.emitters.get(fanMeetingId).get(fanUsername).send(SseEmitter.event().name("allIdolEntered").data(new HashMap<>()));
-                            } catch (IOException e) {
-                                throw new CustomException(EMITTER_SEND_FAILED);
-                            }
-                        });
+                    SseService.gameRooms.get(fanMeetingId).forEach(fanUsername -> {
+                        sseService.sendEvent(fanMeetingId, fanUsername, "allIdolEntered", new HashMap<>());
+                    });
 
-                        // 해당 방에 있는 모든 아이돌한테도 알려주기
-                        SseService.isIdolsEntered.get(fanMeetingId).keySet().forEach(idolUsername -> {
-                            try {
-                                SseService.emitters.get(fanMeetingId).get(idolUsername).send(SseEmitter.event().name("allIdolEntered").data(new HashMap<>()));
-                            } catch (IOException e) {
-                                throw new CustomException(EMITTER_SEND_FAILED);
-                            }
+                    // 해당 방에 있는 모든 아이돌한테도 알려주기
+                    SseService.isIdolsEntered.get(fanMeetingId).keySet().forEach(idolUsername -> {
+                        sseService.sendEvent(fanMeetingId, idolUsername, "allIdolEntered", new HashMap<>());
                         });
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
                 }
             }
             // 게임방에서 나갔을 경우
@@ -123,7 +112,6 @@ public class SseController {
                 if (SseService.isIdolsEntered.get(fanMeetingId) == null) {
                     SseService.isIdolsEntered.put(fanMeetingId, new ConcurrentHashMap<>());
                 }
-
                 if (SseService.isIdolsEntered.get(fanMeetingId).get(username) != null) {
                     SseService.isIdolsEntered.get(fanMeetingId).put(username, false);
                 }
@@ -159,8 +147,6 @@ public class SseController {
                     // 다음 방의 커넥션 리스트 얻어서,
                     List<Connection> connections = openviduService.getConnections(nextRoomOrder.getCurrentRoom());
 
-
-
                     boolean fanInIdolRoom = false;
                     boolean idolInIdolRoom = false;
                     boolean adminInIdolRoom = false;
@@ -184,28 +170,23 @@ public class SseController {
                         params.put("idolNickName", currRoomOrder.getNickname());
                         params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
                         params.put("motionType", nextRoomOrder.getMotionType());
-//                        params.put("gameType", nextRoomOrder.getGameType());
 
+                        log.info("해당 방에 Admin, Idol만 존재해서 팬 들여보냄.");
                         try {
-                            log.info("해당 방에 Admin, Idol만 존재해서 팬 들여보냄.");
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                throw new CustomException(SLEEP_FAILED);
-                            }
-
-                            openvidu.fetch();
-                            Session session = openvidu.getActiveSession(sessionId);
-                            session.forceDisconnect(parseConnectionId(eventMessage));
-
-                            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
-                            return eventMessage;
-                            // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
-                            // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
-
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            throw new CustomException(THREAD_INTERRUPTED);
                         }
+
+                        openvidu.fetch();
+                        Session session = openvidu.getActiveSession(sessionId);
+                        session.forceDisconnect(parseConnectionId(eventMessage));
+
+                        sseService.sendEvent(fanMeetingId, username, "moveToIdolRoom", params);
+                        return eventMessage;
+                        // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
+                        // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
+
                     }
 
 
@@ -217,44 +198,24 @@ public class SseController {
                         params.put("idolNickName", currRoomOrder.getNickname());
                         params.put("roomThumbnail", currRoomOrder.getRoomThumbnail());
                         params.put("motionType", nextRoomOrder.getMotionType());
-//                        params.put("gameType", nextRoomOrder.getGameType());
+
+                        log.info("관리자만 있는데 일단 들여보냄");
 
                         try {
-                            log.info("관리자만 있는데 일단 들여보냄");
-
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                throw new CustomException(SLEEP_FAILED);
-                            }
-
-                            openvidu.fetch();
-                            Session session = openvidu.getActiveSession(sessionId);
-                            session.forceDisconnect(parseConnectionId(eventMessage));
-
-                            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("moveToIdolRoom").data(params));
-                            return eventMessage;
-                            // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
-                            // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
-
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            throw new CustomException(THREAD_INTERRUPTED);
                         }
+
+                        openvidu.fetch();
+                        Session session = openvidu.getActiveSession(sessionId);
+                        session.forceDisconnect(parseConnectionId(eventMessage));
+
+                        sseService.sendEvent(fanMeetingId, username, "moveToIdolRoom", params);
+                        return eventMessage;
+                        // 쏘고 나면, 클라이언트에서 이 이벤트를 받아 처리한다.(화면 전환 + 해당 세션에 입장)
+                        // 입장시, joined 이벤트 발생 -> 웹훅 -> 대기방에 추가됨.
                     }
-//
-//                    // 3개면 진행중임
-//                    else if (connections.size() == 3) {
-//                        try {
-//                            log.info("해당 아이돌 방 커넥션 3개임.");
-//                            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("full").data("full"));
-//                            sseService.addwaiter(username, fanMeetingId, sessionId);
-//                            return eventMessage;
-//                        } catch (IOException e) {
-//                            throw new RuntimeException(e);
-//                        }
-//                    }
-//
-                    //
                     else {
                         log.info("(해당 아이돌 방에 Admin만 있는 경우), (Admin과 Idol이 있고, FAN 이 없는 경우) 를 제외한 경우");
                         sseService.addwaiter(username, fanMeetingId, sessionId);
@@ -326,18 +287,15 @@ public class SseController {
                 }
                 FanMeetingRoomOrder nextRoomOrder = nextFanMeetingRoomOrderOpt.get();
 
-                try {
-                    Map<String, String> params = new HashMap<>();
-                    params.put("nextRoomId", prevRoomOrder.getNextRoom());
-                    params.put("currRoomType", prevRoomOrder.getType());
-                    params.put("idolNickName", prevRoomOrder.getNickname());
-                    params.put("roomThumbnail", prevRoomOrder.getRoomThumbnail());
-                    params.put("motionType", nextRoomOrder.getMotionType());
+//                try {
+                Map<String, String> params = new HashMap<>();
+                params.put("nextRoomId", prevRoomOrder.getNextRoom());
+                params.put("currRoomType", prevRoomOrder.getType());
+                params.put("idolNickName", prevRoomOrder.getNickname());
+                params.put("roomThumbnail", prevRoomOrder.getRoomThumbnail());
+                params.put("motionType", nextRoomOrder.getMotionType());
 
-                    SseService.emitters.get(fanMeetingId).get(newUsername).send(SseEmitter.event().name("moveToIdolRoom").data(params));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                sseService.sendEvent(fanMeetingId, newUsername, "moveToIdolRoom", params);
             }
 
             // 참가자가 게임방에 들어왔을 때

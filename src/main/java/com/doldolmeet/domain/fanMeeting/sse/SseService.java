@@ -9,7 +9,6 @@ import com.doldolmeet.exception.CustomException;
 import io.openvidu.java.client.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.User;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,7 +92,7 @@ public class SseService {
             throw new RuntimeException(e);
         }
 
-        sseEvents.put(username, new ArrayList<>());
+        sseEvents.computeIfAbsent(username, k -> new ArrayList<>());
 
         if (!lastEventId.isBlank()) {
             // lastEventId가 있으면, 그 이후의 이벤트들만 다시 보내기
@@ -108,6 +107,8 @@ public class SseService {
                                 .data(sseEvent.getData()));
                     } catch (IOException e) {
                         log.error("lastEventId 이후의 이벤트 다시 보내기 실패. {}", sseEvent.getName());
+                        // 못 보낸 이후부터 다시 보내야 하기 때문에 바로 break
+                        break;
                     }
                 }
             }
@@ -128,14 +129,14 @@ public class SseService {
         }
 
         if (waitingRooms.get(fanMeetingId).get(sessionId) == null) {
-            Comparator comparator = new OrderNumberComparator();
-            SortedSet<UserNameAndOrderNumber> sortedSet = new TreeSet(comparator);
+            Comparator<UserNameAndOrderNumber> comparator = new OrderNumberComparator();
+            SortedSet<UserNameAndOrderNumber> sortedSet = new TreeSet<>(comparator);
             waitingRooms.get(fanMeetingId).put(sessionId, sortedSet);
         }
 
         Optional<FanToFanMeeting> ftfm = fanToFanMeetingRepository.findByFanMeetingIdAndFanUsername(fanMeetingId, username);
 
-        if (!ftfm.isPresent()) {
+        if (ftfm.isEmpty()) {
             throw new CustomException(NOT_FOUND_FANTOFANMEETING);
         }
 
@@ -252,7 +253,9 @@ public class SseService {
         return "이벤트를 잘 받았다는 메시지가 서버에게 잘 전송됨";
     }
 
-    public void sendEvent(Long fanMeetingId, String username, String eventName, Object data) {
+    public boolean sendEvent(Long fanMeetingId, String username, String eventName, Object data) {
+        log.info("{}에게 {} 이벤트 보내기, data: {}", username, eventName, data);
+
         SseEvent sseEvent = new SseEvent();
         sseEvent.setUsername(username);
         sseEvent.setId(username + System.currentTimeMillis());
@@ -263,6 +266,7 @@ public class SseService {
 
         if (SseService.emitters.get(fanMeetingId) == null || SseService.emitters.get(fanMeetingId).get(username) == null) {
             log.error("SSE send 실패. 유저 이름: {}, 이벤트 이름: {}", username, eventName);
+            return false;
         }
 
         try {
@@ -272,17 +276,19 @@ public class SseService {
                             .id(sseEvent.getId())
                             .data(data)
             );
+            return true;
         } catch (IOException e) {
             log.error("SSE Event send 실패. 유저 이름: {}, 이벤트 이름: {}, 에러 메시지: {}", username, eventName, e.getMessage());
             if (SseService.emitters.get(fanMeetingId).get(username) != null) {
                 SseService.emitters.get(fanMeetingId).remove(username);
             }
-//            return username + "에게" + eventName + "이벤트 보내기 실패";
+            return false;
         } catch (IllegalStateException e) {
             log.error("emitter가 이미 종료되었습니다. 유저이름: {}, 이벤트 이름: {}, 에러 메시지: {}",username, eventName, e.getMessage());
             if (emitters.get(fanMeetingId).get(username) != null) {
                 emitters.get(fanMeetingId).remove(username);
             }
+            return false;
         }
     }
 }
