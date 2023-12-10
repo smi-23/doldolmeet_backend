@@ -158,8 +158,25 @@ public class SseController {
                     // 다음 방의 커넥션 리스트 얻어서,
                     List<Connection> connections = openviduService.getConnections(nextRoomOrder.getCurrentRoom());
 
-                    // 다음 방 커넥션이 2개면 해당 팬에게 아이돌방 들어가라고 에미터 쏴주기
-                    if (connections.size() == 2) {
+
+
+                    boolean fanInIdolRoom = false;
+                    boolean idolInIdolRoom = false;
+                    boolean adminInIdolRoom = false;
+                    for (Connection connection:connections){
+                        if (connection.getClientData().contains("FAN")) {
+                            fanInIdolRoom = true;
+                        }
+                        if (connection.getClientData().contains("IDOL")) {
+                            idolInIdolRoom = true;
+                        }
+                        if (connection.getClientData().contains("ADMIN")) {
+                            adminInIdolRoom = true;
+                        }
+                    }
+
+                    // 다음 방에 들어갈 수 있는 경우는 Admin과 Idol이 있고 , FAN 이 없는 경우
+                    if (!fanInIdolRoom && idolInIdolRoom && adminInIdolRoom) {
                         Map<String, String> params = new HashMap<>();
                         params.put("nextRoomId", currRoomOrder.getNextRoom());
                         params.put("currRoomType", currRoomOrder.getType());
@@ -169,7 +186,7 @@ public class SseController {
 //                        params.put("gameType", nextRoomOrder.getGameType());
 
                         try {
-                            log.info("해당 아이돌 방 커넥션 2개라서 팬 들여보냄.");
+                            log.info("해당 방에 Admin, Idol만 존재해서 팬 들여보냄.");
                             try {
                                 Thread.sleep(1000);
                             } catch (InterruptedException e) {
@@ -190,8 +207,9 @@ public class SseController {
                         }
                     }
 
-                    // 다음 방 커넥션이 1개면 관리자만 들어와 있는 경우라고 설정
-                    else if (connections.size() == 1) {
+
+                    // 관리자만 들어와 있는 경우라고 설정
+                    else if (!fanInIdolRoom && !idolInIdolRoom && adminInIdolRoom) {
                         Map<String, String> params = new HashMap<>();
                         params.put("nextRoomId", currRoomOrder.getNextRoom());
                         params.put("currRoomType", currRoomOrder.getType());
@@ -201,7 +219,7 @@ public class SseController {
 //                        params.put("gameType", nextRoomOrder.getGameType());
 
                         try {
-                            log.info("해당 아이돌 방 커넥션 1개인데 일단 들여보냄");
+                            log.info("관리자만 있는데 일단 들여보냄");
 
                             try {
                                 Thread.sleep(1000);
@@ -222,22 +240,22 @@ public class SseController {
                             throw new RuntimeException(e);
                         }
                     }
-
-                    // 3개면 진행중임
-                    else if (connections.size() == 3) {
-                        try {
-                            log.info("해당 아이돌 방 커넥션 3개임.");
-                            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("full").data("full"));
-                            sseService.addwaiter(username, fanMeetingId, sessionId);
-                            return eventMessage;
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-
-                    // 0개거나 4개 이상이면 예외사항
+//
+//                    // 3개면 진행중임
+//                    else if (connections.size() == 3) {
+//                        try {
+//                            log.info("해당 아이돌 방 커넥션 3개임.");
+//                            SseService.emitters.get(fanMeetingId).get(username).send(SseEmitter.event().name("full").data("full"));
+//                            sseService.addwaiter(username, fanMeetingId, sessionId);
+//                            return eventMessage;
+//                        } catch (IOException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//
+                    //
                     else {
-                        log.info("해당 아이돌 방 커넥션 0개거나 4개 이상임.");
+                        log.info("(해당 아이돌 방에 Admin만 있는 경우), (Admin과 Idol이 있고, FAN 이 없는 경우) 를 제외한 경우");
                         throw new CustomException(INVALID_IDOLROOM_STATE);
                     }
                 }
