@@ -293,22 +293,35 @@ public class MyRecordingController {
 
 //		onApplicationStart();
 
-		try {
-			openVidu.fetch();
-			Recording recording = this.openVidu.startRecording(sessionId, properties);
-			log.info("레코딩 정보: " + recording);
-			HashMap<String, String> sessionIdMap = new HashMap<>();
-			sessionIdMap.put("sessionId", sessionId);
-//			recordingInfo.put(List.of(fanMeetingId, fan, sessionId), recording.getId());
-			this.sessionRecordings.put(sessionId, true);
-			this.sessionIdRecordingsMap.put(sessionId, recording);
-			// recordingInfo entity에 저장
-			recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, fileName, recording.getId());
-			log.info("여기까지 오면 레코딩 정보 저장 완료");
-			return new ResponseEntity<>(recording, HttpStatus.OK);
-		} catch (OpenViduJavaClientException | OpenViduHttpException e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		for (int retryCount = 0; retryCount < 2; retryCount++) {
+			try {
+				openVidu.fetch();
+				Recording recording = this.openVidu.startRecording(sessionId, properties);
+				log.info("레코딩 정보: " + recording);
+				HashMap<String, String> sessionIdMap = new HashMap<>();
+				sessionIdMap.put("sessionId", sessionId);
+				this.sessionRecordings.put(sessionId, true);
+				this.sessionIdRecordingsMap.put(sessionId, recording);
+				recordingInfoService.saveRecordingInfo(fanMeetingId, fan, idol, fileName, recording.getId());
+				log.info("여기까지 오면 레코딩 정보 저장 완료");
+				return new ResponseEntity<>(recording, HttpStatus.OK);
+			} catch (OpenViduJavaClientException | OpenViduHttpException e) {
+				if (retryCount < 1) {
+					log.warn("레코딩 시작 시도 중 오류 발생. 재시도 중... (재시도 횟수: " + (retryCount + 1) + ")");
+					// 예외 발생 시 잠시 대기하고 다시 시도
+					try {
+						Thread.sleep(1000); // 1초 대기
+					} catch (InterruptedException ex) {
+						Thread.currentThread().interrupt();
+					}
+				} else {
+					log.error("레코딩 시작 중 오류 발생 (최대 재시도 횟수 초과)", e);
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
+			}
 		}
+
+		return new ResponseEntity<>("레코딩 시작 중 오류 발생 (최대 재시도 횟수 초과)", HttpStatus.BAD_REQUEST);
 	}
 
 	@RequestMapping(value = "/recording/stop", method = RequestMethod.POST)
