@@ -7,6 +7,7 @@ import com.doldolmeet.security.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class ChatRoomRepository {
@@ -56,18 +58,24 @@ public class ChatRoomRepository {
     public ChatRoomDto createChatRoom(String name) {
         ChatRoomDto room = ChatRoomDto.create(name);
         // roomId값을 FanToChatRoom에 저장
-
+        log.info("createChatRoom: {}", name);
         opsHashChatRoom.put(CHAT_ROOMS, room.getRoomId(), room);
         return room;
     }
 
     // 채팅방 입장 : Redis Topic을 만들고 pub/sub 통신을 하기 위해서 리스너를 설정한다.
     public boolean enterChatRoom(String roomId) {
+        log.info("enterChatRoom: {}", roomId);
         ChannelTopic topic = topics.get(roomId);
+
 
         // 방이 없으면 생성
         if (topic == null) {
+            log.info("enterChatRoom topic == null roomId: {}", roomId);
+
             topic = new ChannelTopic(roomId);
+            log.info("enterChatRoom topic == null topic: {}", roomId);
+
             MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(redisSubscriber);
             redisMessageListener.addMessageListener(messageListenerAdapter, topic);
             topics.put(roomId, topic); // (방번호, 방번호에 해당하는 토픽)
@@ -136,6 +144,7 @@ public class ChatRoomRepository {
     }
 
     public ChannelTopic getTopic(String roomId) {
+        log.info("getTopic: {}", roomId);
         return topics.get(roomId);
     }
 }
