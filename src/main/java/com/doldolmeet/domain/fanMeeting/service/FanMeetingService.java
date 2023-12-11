@@ -114,7 +114,7 @@ public class FanMeetingService {
                     .nickname(idols.get(i/2).getUserCommons().getNickname())
                     .roomThumbnail(idols.get(i/2).getUserCommons().getThumbNailImgUrl())
                     .type(i % 2 == 0 ? "waitRoom" : "idolRoom")
-                    .motionType(i%4 == 0 || i%4 == 1 ? "bigHeart" : "halfHeart")
+                    .motionType(i%4 == 0 || i%4 == 1 ? "halfHeart" : "bigHeart")
 //                    .gameType(""+cnt)
                     .build();
 
