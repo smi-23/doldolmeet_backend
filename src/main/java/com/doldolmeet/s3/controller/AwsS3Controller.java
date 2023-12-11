@@ -4,10 +4,12 @@ import com.doldolmeet.s3.service.AwsS3Service;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -38,6 +40,11 @@ public class AwsS3Controller {
     public ResponseEntity<Resource> downloadFile(@RequestParam String fileName) {
         // Download logic
         return awsS3Service.downloadFile(fileName);
+    }
+
+    @GetMapping("/fastDownload")
+    public ResponseEntity<byte[]> fastDownloadFile(@RequestParam String fileName) throws IOException {
+        return awsS3Service.fastDownloadFile(fileName);
     }
 
     /**

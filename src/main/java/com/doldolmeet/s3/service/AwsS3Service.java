@@ -3,6 +3,7 @@ package com.doldolmeet.s3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -15,8 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,9 +29,12 @@ import java.util.UUID;
 public class AwsS3Service {
 
     @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    private  String bucket;
 
     private final AmazonS3 amazonS3;
+
+    // 20MB를 바이트 단위로 설정
+    private static final int SOME_THRESHOLD_SIZE = 20 * 1024 * 1024;
 
     // 캡쳐나 비디오등등 파일을 업로드할 때 공통으로 쓸 함수 현재 인자로 multipartfile이 들어가는 이유는 메소드들을 사용하기 위해서
     public String uploadFile(MultipartFile file) {
@@ -71,7 +77,7 @@ public class AwsS3Service {
 
     /**
      * AWS S3 버킷에서 파일을 다운로드하는 메서드.
-     *
+     * download 속도는 느리지만 transfer start 속도는 빠름
      * @param fileName 다운로드할 파일의 고유한 파일명
      * @return ResponseEntity<Resource> 객체로 다운로드된 파일과 관련된 정보를 포함하는 응답
      */
@@ -90,6 +96,37 @@ public class AwsS3Service {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(resource);
+    }
+
+    // 용량에 따라 다른방식으로 처리하는 download api / download 속도는 빠르지만 transfer start 속도는 느림
+    public ResponseEntity<byte[]> fastDownloadFile(String fileName) throws IOException {
+        // AWS S3에서 파일 객체 가져오기
+        S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucket, fileName));
+
+        // S3ObjectInputStream을 이용하여 버퍼링된 InputStream 생성
+        try (InputStream inputStream = new BufferedInputStream(s3Object.getObjectContent())) {
+            byte[] bytes = IOUtils.toByteArray(inputStream);
+
+            // 파일 크기 체크
+            if (bytes.length > SOME_THRESHOLD_SIZE) {
+                // 파일이 일정 크기 이상이면 스트리밍 방식으로 처리
+                return ResponseEntity
+                        .status(HttpStatus.PARTIAL_CONTENT)
+                        .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(bytes.length))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20") + "\"")
+                        .body(bytes);
+            }
+
+            // 파일이 일정 크기 미만이면 전체 파일을 응답
+            String storedFileName = URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            httpHeaders.setContentLength(bytes.length);
+            httpHeaders.setContentDispositionFormData("attachment", storedFileName);
+
+            return new ResponseEntity<>(bytes, httpHeaders, HttpStatus.OK);
+        }
     }
 
     public void deleteFile(String fileName) {
