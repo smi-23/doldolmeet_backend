@@ -49,8 +49,8 @@ public class MyTask implements Runnable {
 
     @Override
     public void run() {
-        long timeLimit = 60000;
-        long endNotice = 15000;
+        long timeLimit = 55000;
+        long endNotice = 10000;
 
         try {
             // 게임 시작 전까지 자기
