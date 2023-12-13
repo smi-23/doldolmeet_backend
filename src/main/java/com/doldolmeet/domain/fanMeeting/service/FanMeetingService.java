@@ -14,7 +14,7 @@ import com.doldolmeet.domain.users.fan.entity.Fan;
 import com.doldolmeet.domain.users.fan.repository.FanRepository;
 import com.doldolmeet.domain.users.idol.entity.Idol;
 import com.doldolmeet.domain.users.idol.repository.IdolRepository;
-import com.doldolmeet.domain.waitRoom.chat.repository.ChatRoomRepository;
+import com.doldolmeet.domain.waitRoom.chat.service.ChatRoomService;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoom;
 import com.doldolmeet.domain.waitRoom.entity.WaitRoomFan;
 import com.doldolmeet.domain.waitRoom.repository.WaitRoomFanRepository;
@@ -49,7 +49,7 @@ public class FanMeetingService {
     private final WaitRoomFanRepository waitRoomFanRepository;
     private final WaitRoomRepository waitRoomRepository;
     private final TeleRoomFanRepository teleRoomFanRepository;
-    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomService chatRoomService;
     private final FanMeetingRoomOrderRepository fanMeetingRoomOrderRepository;
     private final JwtUtil jwtUtil;
     private final UserUtils userUtils;
@@ -66,7 +66,7 @@ public class FanMeetingService {
             throw new CustomException(TEAM_NOT_FOUND);
         }
 
-        String chatRoomId = chatRoomRepository.createChatRoom(requestDto.getFanMeetingName()).getRoomId();
+        String chatRoomId = chatRoomService.createChatRoom(requestDto.getFanMeetingName()).getRoomId();
 
         FanMeeting fanMeeting = FanMeeting.builder()
                 .startTime(requestDto.getStartTime())
@@ -193,7 +193,7 @@ public class FanMeetingService {
 
         FanMeeting fanMeeting = fanMeetingOpt.get();
 
-        String chatRoomId = chatRoomRepository.createChatRoom(fanMeeting.getFanMeetingName()).getRoomId();
+        String chatRoomId = chatRoomService.createChatRoom(fanMeeting.getFanMeetingName()).getRoomId();
 
         FanToFanMeeting fanToFanMeeting = FanToFanMeeting.builder()
                 .fanMeetingApplyStatus(FanMeetingApplyStatus.APPROVED)

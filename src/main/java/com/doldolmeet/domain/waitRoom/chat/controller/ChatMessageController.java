@@ -1,8 +1,9 @@
 package com.doldolmeet.domain.waitRoom.chat.controller;
 
 import com.doldolmeet.domain.waitRoom.chat.dto.ChatMessageDto;
-import com.doldolmeet.domain.waitRoom.chat.repository.ChatRoomRepository;
+import com.doldolmeet.domain.waitRoom.chat.service.ChatRoomService;
 import com.doldolmeet.domain.waitRoom.config.RedisPublisher;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -13,16 +14,16 @@ import org.springframework.stereotype.Controller;
 public class ChatMessageController {
 
     private final RedisPublisher redisPublisher;
-    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomService chatRoomService;
     private final SimpMessageSendingOperations messagingTemplate;
 
     @MessageMapping("/chat/message")
-    public void message(ChatMessageDto message) {
+    public void message(@Valid ChatMessageDto message) {
         if (ChatMessageDto.MessageType.ENTER.equals(message.getType())) {
-            chatRoomRepository.enterChatRoom(message.getRoomId());
+            chatRoomService.enterChatRoom(message.getRoomId());
         }
         // Websocket에 발행된 메시지를 redis로 발행한다(publish)
-        redisPublisher.publish(chatRoomRepository.getTopic(message.getRoomId()), message);
+        redisPublisher.publish(chatRoomService.getTopic(message.getRoomId()), message);
     }
 
     // WebSocket "/pub/chat/message"로 들어오는 메시지를 처리한다.

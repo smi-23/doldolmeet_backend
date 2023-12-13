@@ -1,11 +1,9 @@
 package com.doldolmeet.domain.waitRoom.chat.controller;
 
 import com.doldolmeet.domain.waitRoom.chat.dto.ChatRoomDto;
-import com.doldolmeet.domain.waitRoom.chat.repository.ChatRoomRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import com.doldolmeet.domain.waitRoom.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,31 +13,32 @@ import java.util.List;
 @RequestMapping("/chat")
 public class ChatRoomController {
 
-    private final ChatRoomRepository chatRoomRepository;
-
-    @GetMapping("/room")
-    public String rooms(Model model) {
-        return "/room";
-    }
+    private final ChatRoomService chatRoomService;
 
     @GetMapping("/rooms")
     @ResponseBody
     public List<ChatRoomDto> room() {
-        return chatRoomRepository.findAllRoom();
+        return chatRoomService.findAllRoom();
     }
 
     @PostMapping("/room")
     @ResponseBody
     public ChatRoomDto createRoom(@RequestParam String name) {
-        return chatRoomRepository.createChatRoom(name);
+        return chatRoomService.createChatRoom(name);
     }
 
-    // 대기방 입장
-    @GetMapping("/room/enter/{roomId}")
-    public String roomDetail(Model model, @PathVariable String roomId) {
-        model.addAttribute("roomId", roomId);
-        return "/roomdetail";
+    @GetMapping("/room/{roomId}")
+    @ResponseBody
+    public ChatRoomDto roomInfo(@PathVariable String roomId) {
+        return chatRoomService.findRoomById(roomId);
     }
+
+    //    // 대기방 입장
+//    @GetMapping("/room/enter/{roomId}")
+//    public String roomDetail(Model model, @PathVariable String roomId) {
+//        model.addAttribute("roomId", roomId);
+//        return "/roomdetail";
+//    }
 
 //    // 대기방 입장할 때마다 입장한 팬 저장
 //    @GetMapping("/room/enter/{roomId}")
@@ -54,12 +53,6 @@ public class ChatRoomController {
 //        // getWaitRoomId 메서드: fanMeetingId와 reqeust를 받아서 roomId 반환
 //        return chatRoomRepository.getWaitRoomId(fanMeetingId, request);
 //    }
-
-    @GetMapping("/room/{roomId}")
-    @ResponseBody
-    public ChatRoomDto roomInfo(@PathVariable String roomId) {
-        return chatRoomRepository.findRoomById(roomId);
-    }
 
     // 특정 채팅방 조회
     // 일단, 로그인 되어 있는 상태

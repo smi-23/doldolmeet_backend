@@ -66,10 +66,13 @@ dependencies {
     implementation "com.amazonaws:aws-java-sdk-s3:1.12.281"
 
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
- // java9 부터 jaxb사용이 불가능해지고 모듈시스템이 추가되어서 추가한 디펜던시
+    // java9 부터 jaxb사용이 불가능해지고 모듈시스템이 추가되어서 추가한 디펜던시
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     //recording을 위해 추가
     implementation 'io.openvidu:openvidu-java-client:2.29.0'
+    // redis에 메시지 생성시간을 추가하기 위해 추가
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
 
 
 
