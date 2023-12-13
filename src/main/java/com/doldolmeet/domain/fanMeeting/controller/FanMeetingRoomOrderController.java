@@ -28,4 +28,9 @@ public class FanMeetingRoomOrderController {
         return fanMeetingRoomOrderService.getFanMeetingRoomOrder(fanMeetingId, request);
     }
 
+    @GetMapping("/idolRoom/{fanMeetingId}")
+    public ResponseEntity<Message> getAllIdolRoom(@PathVariable Long fanMeetingId) {
+        return fanMeetingRoomOrderService.getAllIdolRoom(fanMeetingId);
+    }
+
 }

@@ -84,4 +84,28 @@ public class FanMeetingRoomOrderService {
 
         return new ResponseEntity<>(new Message("List<roomOrders> 반환 성공!!", fanMeetingRoomOrderDtos), HttpStatus.OK);
     }
+
+    public ResponseEntity<Message> getAllIdolRoom(Long fanMeetingId) {
+        Optional<FanMeeting> fanMeetingOpt = fanMeetingRepository.findById(fanMeetingId);
+
+        if (fanMeetingOpt.isEmpty()) {
+            throw new CustomException(FANMEETING_NOT_FOUND);
+        }
+
+        List<FanMeetingRoomOrder> idolRoomOrders = fanMeetingRoomOrderRepository
+                .findByFanMeetingIdAndType(fanMeetingId, "idolRoom");
+
+        List<FanMeetingRoomOrderDto> fanMeetingRoomOrderDtos = idolRoomOrders.stream()
+                .map(order -> FanMeetingRoomOrderDto.builder()
+                        .id(order.getId())
+                        .motionType(order.getMotionType())
+                        .currentRoom(order.getCurrentRoom())
+                        .idolName(order.getNickname())
+                        .type(order.getType())
+                        .fanMeetingId(fanMeetingId)
+                        .build())
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(new Message("List<idolRoom> 반환 성공!!", fanMeetingRoomOrderDtos), HttpStatus.OK);
+    }
 }
