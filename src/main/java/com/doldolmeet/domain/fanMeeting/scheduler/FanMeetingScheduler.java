@@ -30,7 +30,7 @@ public class FanMeetingScheduler {
     private final FanMeetingRepository fanMeetingRepository;
     private final SseService sseService;
 
-    @Scheduled(fixedRate = 10 * 1000) // 10초마다 실행
+    @Scheduled(fixedRate = 5 * 1000) // 5초마다 실행
     @Transactional
     public void checkFanMeetingStartTime() {
         // 오늘 열려있는 팬미팅들 조회

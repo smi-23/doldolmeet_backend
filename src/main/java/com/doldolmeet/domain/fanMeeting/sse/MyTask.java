@@ -49,7 +49,7 @@ public class MyTask implements Runnable {
 
     @Override
     public void run() {
-        long timeLimit = 55000;
+        long timeLimit = 50000;
         long endNotice = 10000;
 
         try {
