@@ -54,7 +54,7 @@ public class MyTask implements Runnable {
 
         try {
             // 게임 시작 전까지 자기
-            Thread.sleep(timeLimit - endNotice); // 45초 대화
+            Thread.sleep(timeLimit - endNotice); // 40초 대화
             log.info("---------아이돌방 쓰레드 안꺼지고 계속 도는 중: {}", body);
 
         } catch (InterruptedException e) {
